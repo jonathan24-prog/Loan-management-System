@@ -52,12 +52,15 @@ WSGI_APPLICATION = 'lms_project.wsgi.application'
 
 # Database
 DATABASES = {
-    "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",  # fallback for local dev
-        conn_max_age=600
+    "default": dj_database_url.parse(
+        os.environ.get(
+            "DATABASE_URL",
+            "postgresql://lms_db_uk3v_user:njTe4hdgPZw3VJb2Ycd4k15ffbFkxF1h@dpg-d6tusi94tr6s73bthbjg-a/lms_db_uk3v"
+        ),
+        conn_max_age=600,
+        ssl_require=True
     )
 }
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},

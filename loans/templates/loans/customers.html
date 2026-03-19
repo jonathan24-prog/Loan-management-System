@@ -1,0 +1,246 @@
+{% extends 'loans/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2>Customer Management</h2>
+
+    <!-- 🔍 Modern Search Bar -->
+<form method="GET" class="mb-4" id="searchForm">
+    <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
+        
+        <input 
+            type="text" 
+            name="q" 
+            id="searchInput"
+            class="search-input" 
+            placeholder="Search customer name or contact number..."
+            value="{{ request.GET.q }}"
+        >
+
+        {% if request.GET.q %}
+        <button type="button" class="clear-btn" onclick="clearSearch()">✖</button>
+        {% endif %}
+    </div>
+</form>
+
+    <!-- Add Customer Button -->
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+        Add Customer
+    </button>
+
+    <!-- Add Customer Modal -->
+    <div class="modal fade" id="addCustomerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label>Full Name</label>
+                            {{ form.full_name }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Contact Number</label>
+                            {{ form.contact_number }}
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Add Customer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Table -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Contact Number</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for customer in customers %}
+            <tr class="clickable-row" data-href="{% url 'customer_detail' customer.pk %}">
+                <td>{{ customer.full_name }}</td>
+                <td>{{ customer.contact_number }}</td>
+                <td>
+
+                    <a href="{% url 'add_loan' customer.pk %}" 
+                       class="btn btn-sm btn-success"
+                       onclick="event.stopPropagation();">
+                        Add Loan
+                    </a>
+
+                    <a href="{% url 'reloan' customer.pk %}" 
+                       class="btn btn-sm btn-warning"
+                       onclick="event.stopPropagation();">
+                        Reloan
+                    </a>
+
+                    <button type="button" class="btn btn-sm btn-danger"
+                        data-bs-toggle="modal"
+                        data-bs-target="#deleteModal{{ customer.pk }}"
+                        onclick="event.stopPropagation();">
+                        Delete
+                    </button>
+
+                    <!-- Delete Modal -->
+                    <div class="modal fade" id="deleteModal{{ customer.pk }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Confirm Deletion</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    Are you sure you want to delete 
+                                    <strong>{{ customer.full_name }}</strong>?
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        Cancel
+                                    </button>
+
+                                    <form method="POST" action="{% url 'customer_delete' customer.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">No customers found</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+.modal-backdrop {
+    background-color: rgba(0,0,0,0.8);
+}
+.clickable-row:hover {
+    background-color: #dbdbdb;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // Clickable rows
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', () => {
+            window.location.href = row.dataset.href;
+        });
+    });
+
+    // Prevent row click on buttons
+    document.querySelectorAll('button, a').forEach(el => {
+        el.addEventListener('click', function(event){
+            event.stopPropagation();
+        });
+    });
+
+    // 🔍 AUTO SEARCH (with debounce for performance)
+   // 🔍 Auto search with debounce
+let timer;
+const input = document.getElementById('searchInput');
+
+input.addEventListener('keyup', function () {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        document.getElementById('searchForm').submit();
+    }, 1000);
+});
+
+// ❌ Clear search
+function clearSearch() {
+    const input = document.getElementById('searchInput');
+    input.value = '';
+    document.getElementById('searchForm').submit();
+}
+
+});
+</script>
+
+<style>
+.search-wrapper {
+    position: relative;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 40px 10px 40px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: 0.3s;
+    font-size: 14px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.search-input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #888;
+}
+
+.clear-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    font-size: 14px;
+    cursor: pointer;
+    color: #999;
+}
+
+.clear-btn:hover {
+    color: #000;
+}
+</style>
+
+{% endblock %}

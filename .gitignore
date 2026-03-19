@@ -1,0 +1,22 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Environment files
+*.env
+venv/
+env/
+
+# Database
+*.sqlite3
+
+# Django static and media files
+/staticfiles/
+/media/
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

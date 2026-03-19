@@ -1,0 +1,21 @@
+{% extends 'loans/base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <div class="alert alert-danger">
+        <h4>Cannot Reloan</h4>
+        <p>
+            {{ customer.full_name }} still has an unpaid loan.
+        </p>
+        <p>
+            Remaining Balance: <strong>{{ loan.balance }}</strong>
+        </p>
+
+        <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-primary">
+            Go Back
+        </a>
+    </div>
+</div>
+
+{% endblock %}

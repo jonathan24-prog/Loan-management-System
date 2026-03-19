@@ -1,7 +1,9 @@
+# lms_project/settings.py
 from pathlib import Path
 import os
-import dj_database_url  # Make sure this is in requirements.txt
+import dj_database_url
 
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
@@ -50,18 +52,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'lms_project.wsgi.application'
 
-# Database
+# ---------- DATABASE ----------
+
+# Use external PostgreSQL (Supabase/ElephantSQL)
 DATABASES = {
     "default": dj_database_url.parse(
         os.environ.get(
             "DATABASE_URL",
-            "postgresql://lms_db_uk3v_user:njTe4hdgPZw3VJb2Ycd4k15ffbFkxF1h@dpg-d6tusi94tr6s73bthbjg-a/lms_db_uk3v"
+            "postgresql://lms_db_uk3v_user:njTe4hdgPZw3VJb2Ycd4k15ffbFkxF1h@dpg-d6tusi94tr6s73bthbjg-a.oregon-postgres.render.com/lms_db_uk3v"  # replace with your free DB URL if not using env
+           
         ),
         conn_max_age=600,
         ssl_require=True
     )
 }
-# Password validation
+
+# ---------- PASSWORD VALIDATION ----------
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
@@ -69,13 +75,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-# Internationalization
+# ---------- INTERNATIONALIZATION ----------
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# ---------- STATIC FILES ----------
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

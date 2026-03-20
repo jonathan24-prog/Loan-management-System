@@ -6,6 +6,10 @@ class Customer(models.Model):
     full_name = models.CharField(max_length=200)
     contact_number = models.CharField(max_length=20, blank=True, null=True)
 
+    @property
+    def is_active(self):
+        return self.loans.filter(remaining_balance__gt=0).exists()
+
     def __str__(self):
         return self.full_name
 

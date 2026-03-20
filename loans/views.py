@@ -44,18 +44,28 @@ def dashboard(request):
 # ================= CUSTOMERS =================
 from django.db.models import Q  # ADD THIS IMPORT
 
+from django.db.models import Q
+
 def customers(request):
-    query = request.GET.get('q')  # GET SEARCH INPUT
+    query = request.GET.get('q')
 
-    customers = Customer.objects.all()
+    customers = Customer.objects.all().prefetch_related('loans')
 
-    # APPLY FILTER
+    # 🔍 SEARCH
     if query:
         customers = customers.filter(
             Q(full_name__icontains=query) |
             Q(contact_number__icontains=query)
         )
 
+    # 🧮 COUNTS
+    total_customers = customers.count()
+
+    active_customers = Customer.objects.filter(
+        loans__remaining_balance__gt=0
+    ).distinct().count()
+
+    # ➕ ADD CUSTOMER
     if request.method == "POST":
         form = CustomerForm(request.POST)
         if form.is_valid():
@@ -66,11 +76,13 @@ def customers(request):
 
     context = {
         'form': form,
-        'customers': customers
+        'customers': customers,
+        'total_customers': total_customers,
+        'active_customers': active_customers,
     }
 
     return render(request, 'loans/customers.html', context)
-
+    
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
 

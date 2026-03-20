@@ -54,7 +54,9 @@ WSGI_APPLICATION = 'lms_project.wsgi.application'
 
 # ---------- DATABASE ----------
 
-Use external PostgreSQL (Supabase/ElephantSQL)
+# Use external PostgreSQL (Supabase/ElephantSQL)
+
+
 DATABASES = {
     "default": dj_database_url.parse(
         os.environ.get(

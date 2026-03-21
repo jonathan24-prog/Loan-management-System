@@ -82,39 +82,39 @@
                 <!-- Delete Modal -->
                 
                     <!-- ✅ ALL DELETE MODALS OUTSIDE -->
-{% for customer in customers %}
-<div class="modal fade" id="deleteModal{{ customer.pk }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content shadow-lg rounded-3">
+                {% for customer in customers %}
+                <div class="modal fade" id="deleteModal{{ customer.pk }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content shadow-lg rounded-3">
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Confirm Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold">Confirm Deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
 
-            <div class="modal-body text-center">
-                <p>Are you sure you want to delete</p>
-                <strong class="text-danger">{{ customer.full_name }}</strong>?
-            </div>
+                            <div class="modal-body text-center">
+                                <p>Are you sure you want to delete</p>
+                                <strong class="text-danger">{{ customer.full_name }}</strong>?
+                            </div>
 
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-light border"
-                        data-bs-dismiss="modal">
-                    Cancel
-                </button>
+                            <div class="modal-footer justify-content-center">
+                                <button type="button" class="btn btn-light border"
+                                        data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
 
-                <form method="POST" action="{% url 'customer_delete' customer.pk %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">
-                        Yes, Delete
-                    </button>
-                </form>
-            </div>
+                                <form method="POST" action="{% url 'customer_delete' customer.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">
+                                        Yes, Delete
+                                    </button>
+                                </form>
+                            </div>
 
-        </div>
-    </div>
-</div>
-{% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
 
                 {% empty %}
                 <tr>

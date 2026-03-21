@@ -32,14 +32,62 @@ def logout_view(request):
 
 
 # ================= DASHBOARD =================
+from datetime import date
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncMonth
+import json
+
 def dashboard(request):
+    today = date.today()
+
+    # Total and active customers
     total_customers = Customer.objects.count()
+    active_customers = Customer.objects.filter(
+        loans__remaining_balance__gt=0
+    ).distinct().count()
+
+    # Monthly income (this month)
+    monthly_income = PaymentSchedule.objects.filter(
+        is_paid=True,
+        date__year=today.year,
+        date__month=today.month
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Loan analytics
+    total_loans = Loan.objects.count()
+    ongoing_loans = Loan.objects.filter(remaining_balance__gt=0).count()
+    paid_loans = Loan.objects.filter(remaining_balance=0).count()
+    overdue_payments = PaymentSchedule.objects.filter(
+        is_paid=False,
+        date__lt=today
+    ).count()
+
+    # Monthly income chart (last 12 months)
+    monthly_data_qs = (
+        PaymentSchedule.objects
+        .filter(is_paid=True)
+        .annotate(month=TruncMonth('date'))
+        .values('month')
+        .annotate(total=Sum('amount'))
+        .order_by('month')
+    )
+
+    chart_labels = [m['month'].strftime("%b %Y") for m in monthly_data_qs]
+    chart_data = [float(m['total']) for m in monthly_data_qs]
 
     context = {
-        'total_customers': total_customers
+        'total_customers': total_customers,
+        'active_customers': active_customers,
+        'monthly_income': monthly_income,
+        'total_loans': total_loans,
+        'ongoing_loans': ongoing_loans,
+        'paid_loans': paid_loans,
+        'overdue_payments': overdue_payments,
+        'chart_labels': json.dumps(chart_labels),
+        'chart_data': json.dumps(chart_data),
     }
-    return render(request, 'loans/dashboard.html', context)
 
+    return render(request, 'loans/dashboard.html', context)
 
 # ================= CUSTOMERS =================
 from django.db.models import Q  # ADD THIS IMPORT
@@ -95,17 +143,33 @@ def customer_delete(request, pk):
 
 
 # ================= CUSTOMER DETAILS =================
+from datetime import date  # ADD THIS
+
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     loans = customer.loans.all()
 
     total_income = sum([loan.balance for loan in loans])
 
+    # ✅ ADD THIS LOOP
+    for loan in loans:
+        if loan.start_date and loan.due_date:
+            loan.total_days = (loan.due_date - loan.start_date).days + 1
+            loan.days_left = (loan.due_date - date.today()).days
+
+            # ✅ ADD THIS
+            loan.days_overdue = abs(loan.days_left) if loan.days_left < 0 else 0
+        else:
+            loan.total_days = 0
+            loan.days_left = 0
+            loan.days_overdue = 0
+
     context = {
         'customer': customer,
         'loans': loans,
         'total_income': total_income,
     }
+
     return render(request, 'loans/customer_detail.html', context)
 
 

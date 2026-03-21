@@ -14,6 +14,16 @@
         </div>
 
         <div class="mb-3">
+            <label>Interest Type</label>
+            {{ form.interest_type }}
+        </div>
+
+        <div class="mb-3">
+            <label>Interest Value</label>
+            {{ form.interest_value }}
+        </div>
+
+        <div class="mb-3">
             <label>Start Date</label>
             {{ form.start_date }}
         </div>
@@ -24,7 +34,7 @@
         </div>
 
         <button type="submit" class="btn btn-warning">Save Reloan</button>
-        <a href="{% url 'customer_list' %}" class="btn btn-secondary">Cancel</a>
+        <a href="{% url 'customers' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 

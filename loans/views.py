@@ -155,6 +155,17 @@ def reloan(request, pk):
             loan.customer = customer
             loan.balance = loan.loan_amount
             loan.save()
+
+            delta = (loan.due_date - loan.start_date).days + 1
+            daily_amount = loan.balance / delta if delta > 0 else loan.balance
+
+            for i in range(delta):
+                PaymentSchedule.objects.create(
+                    loan=loan,
+                    date=loan.start_date + timedelta(days=i),
+                    amount=daily_amount
+                )
+
             return redirect('customer_detail', pk=pk)
     else:
         form = LoanForm()

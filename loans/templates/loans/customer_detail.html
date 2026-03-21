@@ -72,7 +72,11 @@
                     {% else %}
                         <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-warning text-dark shadow-sm">
                             <span>{{ sched.date }} - {{ sched.amount }}</span>
-                            <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Mark as Paid</a>
+                            <a href="{% url 'mark_payment_paid' sched.pk %}" 
+                                class="btn btn-sm btn-light"
+                                onclick="return confirm('Are you sure you want to mark this payment as paid?');">
+                                    Mark as Paid
+                                </a>
                         </div>
                     {% endif %}
                 </div>

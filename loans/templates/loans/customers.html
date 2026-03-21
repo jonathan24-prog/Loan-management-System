@@ -8,7 +8,6 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="fw-bold">Customer Management</h2>
 
-        <!-- Add Customer Button -->
         <button type="button" class="btn btn-primary shadow-sm"
                 data-bs-toggle="modal" data-bs-target="#addCustomerModal">
             + Add Customer
@@ -16,29 +15,29 @@
     </div>
 
     <!-- 🔍 Search -->
-    
-    <!-- 📋 Customer Table -->
     <div class="table-container">
-        <form method="GET" class="mb-4" id="searchForm">
-        <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
 
-            <input 
-                type="text" 
-                name="q" 
-                id="searchInput"
-                class="search-input" 
-                placeholder="Search customer name or contact number..."
-                value="{{ request.GET.q }}"
-            >
+        <form method="GET" class="mb-4 d-flex justify-content-center" id="searchForm">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
 
-            {% if request.GET.q %}
-            <button type="button" class="clear-btn" onclick="clearSearch()">✖</button>
-            {% endif %}
-        </div>
-    </form>
+                <input 
+                    type="text" 
+                    name="q" 
+                    id="searchInput"
+                    class="search-input" 
+                    placeholder="Search customer name or contact number..."
+                    value="{{ request.GET.q }}"
+                >
 
-        <table class="table modern-table align-middle" >
+                {% if request.GET.q %}
+                <button type="button" class="clear-btn" onclick="clearSearch()">✖</button>
+                {% endif %}
+            </div>
+        </form>
+
+        <!-- 📋 Customer Table -->
+        <table class="table modern-table align-middle">
             <thead style="background-color: #cccccc;">
                 <tr>
                     <th style="font-weight: 800; color: black;">Name</th>
@@ -73,49 +72,53 @@
                         </a>
 
                         <button type="button" class="btn btn-sm btn-danger action-btn"
-                            data-bs-toggle="modal"
-                            data-bs-target="#deleteModal{{ customer.pk }}">
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal{{ customer.pk }}">
                             Delete
                         </button>
                     </td>
                 </tr>
 
                 <!-- Delete Modal -->
-                <div class="modal fade" id="deleteModal{{ customer.pk }}" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
+                
+                    <!-- ✅ ALL DELETE MODALS OUTSIDE -->
+{% for customer in customers %}
+<div class="modal fade" id="deleteModal{{ customer.pk }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content shadow-lg rounded-3">
 
-                            <div class="modal-header">
-                                <h5 class="modal-title">Confirm Deletion</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-                            <div class="modal-body text-center">
-                                <p>Are you sure you want to delete</p>
-                                <strong class="text-danger">{{ customer.full_name }}</strong>?
-                            </div>
+            <div class="modal-body text-center">
+                <p>Are you sure you want to delete</p>
+                <strong class="text-danger">{{ customer.full_name }}</strong>?
+            </div>
 
-                            <div class="modal-footer justify-content-center">
-                                <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">
-                                    Cancel
-                                </button>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-light border"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
 
-                                <form method="POST" action="{% url 'customer_delete' customer.pk %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">
-                                        Yes, Delete
-                                    </button>
-                                </form>
-                            </div>
+                <form method="POST" action="{% url 'customer_delete' customer.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        Yes, Delete
+                    </button>
+                </form>
+            </div>
 
-                        </div>
-                    </div>
-                </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
                 {% empty %}
                 <tr>
-                    <td colspan="3">
+                    <td colspan="4">
                         <div class="empty-state">
                             <h5>No customers found</h5>
                             <p>Try adjusting your search or add a new customer.</p>
@@ -129,18 +132,57 @@
 
     <!-- 📊 Footer Summary -->
     <div class="d-flex justify-content-center gap-4 mt-4 text-muted small">
+        <div>
+            Active Customers: 
+            <strong class="text-success">{{ active_customers }}</strong>
+        </div>
 
-    <div>
-        Active Customers: 
-        <strong class="text-success">{{ active_customers }}</strong>
-    </div>
-
-    <div>
-        Total Customers: 
-        <strong class="text-primary">{{ customers|length }}</strong>
+        <div>
+            Total Customers: 
+            <strong class="text-primary">{{ customers|length }}</strong>
+        </div>
     </div>
 
 </div>
+
+<!-- ✅ Add Customer Modal (FIXED POSITION) -->
+<div class="modal fade" id="addCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg rounded-3">
+
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Add Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        {{ form.full_name }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contact Number</label>
+                        {{ form.contact_number }}
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        Save
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
 </div>
 
 <!-- Bootstrap -->
@@ -188,10 +230,9 @@ function clearSearch() {
 /* Table container */
 .table-container {
     background: #fff;
-    border-radius: 5px;
-    /* border: 1px solid rgba(0, 0, 0, 0.603); */
-    padding: 10px;
-    box-shadow: 1px 2px 2px 2px rgba(0, 0, 0, 0.219);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
 /* Modern table */
@@ -204,19 +245,18 @@ function clearSearch() {
 .modern-table thead th {
     border: none;
     font-size: 13px;
-    color: #888;
+    color: #555;
     text-transform: uppercase;
 }
 
 .modern-table tbody tr {
     background: #f9f9f9;
     border-radius: 10px;
-    transition: 0.3s;
+    transition: 0.2s;
 }
 
 .modern-table tbody tr:hover {
-    background: #d3d3d3;
-    transform: scale(1.01);
+    background: #eaeaea;
 }
 
 /* Action buttons */
@@ -226,7 +266,7 @@ function clearSearch() {
 }
 
 .action-btn:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2px);
 }
 
 /* Empty state */
@@ -240,6 +280,7 @@ function clearSearch() {
 .search-wrapper {
     position: relative;
     max-width: 400px;
+    width: 100%;
 }
 
 .search-input {
@@ -279,6 +320,19 @@ function clearSearch() {
 
 .clear-btn:hover {
     color: #000;
+}
+
+/* Modal inputs */
+.modal input {
+    width: 100%;
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+.modal input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 5px rgba(13,110,253,0.3);
 }
 
 </style>

@@ -37,52 +37,110 @@ from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth
 import json
 
+from django.utils import timezone
+from django.db.models.functions import TruncDay, TruncWeek, TruncMonth, TruncYear,  TruncHour
+from django.db.models import Sum
+import json
+from datetime import date, timedelta
+
 def dashboard(request):
     today = date.today()
+    filter_type = request.GET.get('filter', 'month')  # default = month
 
-    # Total and active customers
+    # DATE FILTER RANGE
+    if filter_type == 'day':
+        payments = PaymentSchedule.objects.filter(date=today)
+
+    elif filter_type == 'week':
+        start_week = today - timedelta(days=today.weekday())
+        payments = PaymentSchedule.objects.filter(date__gte=start_week)
+
+    elif filter_type == 'year':
+        payments = PaymentSchedule.objects.filter(date__year=today.year)
+
+    else:  # month (default)
+        payments = PaymentSchedule.objects.filter(
+            date__year=today.year,
+            date__month=today.month
+        )
+
+    payments = payments.filter(is_paid=True)
+
+    # ✅ TOTAL COLLECTION (filtered)
+    total_collection = payments.aggregate(total=Sum('amount'))['total'] or 0
+
+    # ✅ TOTAL RELEASED (filtered)
+    if filter_type == 'day':
+        loans = Loan.objects.filter(start_date=today)
+    elif filter_type == 'week':
+        loans = Loan.objects.filter(start_date__gte=start_week)
+    elif filter_type == 'year':
+        loans = Loan.objects.filter(start_date__year=today.year)
+    else:
+        loans = Loan.objects.filter(
+            start_date__year=today.year,
+            start_date__month=today.month
+        )
+
+    total_released = loans.aggregate(total=Sum('loan_amount'))['total'] or 0
+
+    # ✅ TOTAL INTEREST (GLOBAL)
+    total_interest_collected = total_collection - total_released
+    if total_interest_collected < 0:
+        total_interest_collected = 0
+
+    # EXISTING STATS
     total_customers = Customer.objects.count()
     active_customers = Customer.objects.filter(
         loans__remaining_balance__gt=0
     ).distinct().count()
 
-    # Monthly income (this month)
-    monthly_income = PaymentSchedule.objects.filter(
-        is_paid=True,
-        date__year=today.year,
-        date__month=today.month
-    ).aggregate(total=Sum('amount'))['total'] or 0
-
-    # Loan analytics
     total_loans = Loan.objects.count()
     ongoing_loans = Loan.objects.filter(remaining_balance__gt=0).count()
     paid_loans = Loan.objects.filter(remaining_balance=0).count()
+
     overdue_payments = PaymentSchedule.objects.filter(
         is_paid=False,
         date__lt=today
     ).count()
 
-    # Monthly income chart (last 12 months)
-    monthly_data_qs = (
-        PaymentSchedule.objects
-        .filter(is_paid=True)
-        .annotate(month=TruncMonth('date'))
-        .values('month')
+    # 📊 CHART GROUPING BASED ON FILTER
+    if filter_type == 'day':
+        trunc = TruncDay('date') # optional if you want hourly
+    elif filter_type == 'week':
+        trunc = TruncDay('date')
+    elif filter_type == 'year':
+        trunc = TruncMonth('date')
+    else:
+        trunc = TruncDay('date')
+
+    chart_qs = (
+        payments
+        .annotate(period=trunc)
+        .values('period')
         .annotate(total=Sum('amount'))
-        .order_by('month')
+        .order_by('period')
     )
 
-    chart_labels = [m['month'].strftime("%b %Y") for m in monthly_data_qs]
-    chart_data = [float(m['total']) for m in monthly_data_qs]
+    chart_labels = [c['period'].strftime("%b %d") for c in chart_qs]
+    chart_data = [float(c['total']) for c in chart_qs]
 
     context = {
         'total_customers': total_customers,
         'active_customers': active_customers,
-        'monthly_income': monthly_income,
+        'monthly_income': total_collection,  # reuse
+
         'total_loans': total_loans,
         'ongoing_loans': ongoing_loans,
         'paid_loans': paid_loans,
         'overdue_payments': overdue_payments,
+
+        # ✅ NEW
+        'total_collection': total_collection,
+        'total_released': total_released,
+        'total_interest_collected': total_interest_collected,
+        'filter_type': filter_type,
+
         'chart_labels': json.dumps(chart_labels),
         'chart_data': json.dumps(chart_data),
     }
@@ -143,7 +201,9 @@ def customer_delete(request, pk):
 
 
 # ================= CUSTOMER DETAILS =================
-from datetime import date  # ADD THIS
+from django.shortcuts import get_object_or_404, render
+from django.db.models import Sum
+from datetime import date
 
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
@@ -151,23 +211,43 @@ def customer_detail(request, pk):
 
     total_income = sum([loan.balance for loan in loans])
 
-    # ✅ ADD THIS LOOP
+    total_interest_collected = 0
+    total_collection = 0   # ✅ ALL money collected (principal + interest)
+    total_released = 0     # ✅ ONLY principal
+
     for loan in loans:
+        # ✅ EXISTING LOGIC
         if loan.start_date and loan.due_date:
             loan.total_days = (loan.due_date - loan.start_date).days + 1
             loan.days_left = (loan.due_date - date.today()).days
-
-            # ✅ ADD THIS
             loan.days_overdue = abs(loan.days_left) if loan.days_left < 0 else 0
         else:
             loan.total_days = 0
             loan.days_left = 0
             loan.days_overdue = 0
 
+        # ✅ TOTAL RELEASED (principal only)
+        total_released += loan.loan_amount
+
+        # ✅ TOTAL COLLECTION (sum of all paid schedules)
+        total_paid = loan.schedules.filter(is_paid=True).aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+
+        total_collection += total_paid
+
+        # ✅ INTEREST
+        interest = total_paid - loan.loan_amount
+        if interest > 0:
+            total_interest_collected += interest
+
     context = {
         'customer': customer,
         'loans': loans,
         'total_income': total_income,
+        'total_interest_collected': total_interest_collected,
+        'total_collection': total_collection,   # ✅ ADD
+        'total_released': total_released,       # ✅ ADD
     }
 
     return render(request, 'loans/customer_detail.html', context)

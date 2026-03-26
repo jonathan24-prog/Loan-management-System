@@ -201,22 +201,26 @@ def customer_delete(request, pk):
 
 
 # ================= CUSTOMER DETAILS =================
+
 from django.shortcuts import get_object_or_404, render
 from django.db.models import Sum
 from datetime import date
+from .models import Customer, Loan, EmergencyLoan
 
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     loans = customer.loans.all()
+    
+    # Fetch emergency loans separately
+    emergency_loans = customer.emergency_loans.prefetch_related('schedules').all()
 
     total_income = sum([loan.balance for loan in loans])
 
     total_interest_collected = 0
-    total_collection = 0   # ✅ ALL money collected (principal + interest)
-    total_released = 0     # ✅ ONLY principal
+    total_collection = 0   # ALL money collected (principal + interest)
+    total_released = 0     # ONLY principal
 
     for loan in loans:
-        # ✅ EXISTING LOGIC
         if loan.start_date and loan.due_date:
             loan.total_days = (loan.due_date - loan.start_date).days + 1
             loan.days_left = (loan.due_date - date.today()).days
@@ -226,17 +230,14 @@ def customer_detail(request, pk):
             loan.days_left = 0
             loan.days_overdue = 0
 
-        # ✅ TOTAL RELEASED (principal only)
         total_released += loan.loan_amount
 
-        # ✅ TOTAL COLLECTION (sum of all paid schedules)
         total_paid = loan.schedules.filter(is_paid=True).aggregate(
             total=Sum('amount')
         )['total'] or 0
 
         total_collection += total_paid
 
-        # ✅ INTEREST
         interest = total_paid - loan.loan_amount
         if interest > 0:
             total_interest_collected += interest
@@ -244,10 +245,11 @@ def customer_detail(request, pk):
     context = {
         'customer': customer,
         'loans': loans,
+        'emergency_loans': emergency_loans,  # ✅ Added for template
         'total_income': total_income,
         'total_interest_collected': total_interest_collected,
-        'total_collection': total_collection,   # ✅ ADD
-        'total_released': total_released,       # ✅ ADD
+        'total_collection': total_collection,
+        'total_released': total_released,
     }
 
     return render(request, 'loans/customer_detail.html', context)
@@ -281,6 +283,51 @@ def add_loan(request, pk):
     return render(request, 'loans/add_loan.html', {'form': form, 'customer': customer})
 
 
+from django.shortcuts import render, get_object_or_404, redirect
+from datetime import timedelta
+from .models import Customer, PaymentSchedule
+from .forms import EmergencyLoanForm  # ✅ use correct form
+from django.shortcuts import render, get_object_or_404, redirect
+from datetime import timedelta
+from .models import Customer, EmergencyLoan, EmergencyPaymentSchedule
+from .forms import EmergencyLoanForm
+
+def add_emergency_loan(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+
+    if request.method == 'POST':
+        form = EmergencyLoanForm(request.POST)
+        if form.is_valid():
+            loan = form.save(commit=False)
+            loan.customer = customer
+
+            # ✅ Compute total balance (principal + interest)
+            total_balance = loan.loan_amount + (
+                loan.loan_amount * loan.interest_percent / 100
+            )
+
+            loan.remaining_balance = total_balance
+            loan.save()
+
+            # ✅ Compute WEEKLY INTEREST ONLY
+            interest_amount = loan.loan_amount * loan.interest_percent / 100
+
+            # ✅ First payment only
+            EmergencyPaymentSchedule.objects.create(
+                emergency_loan=loan,
+                date=loan.start_date,
+                amount=interest_amount
+            )
+
+            return redirect('customer_detail', pk=customer.pk)
+    else:
+        form = EmergencyLoanForm()
+
+    return render(request, 'loans/add_emergency_loan.html', {
+        'form': form,
+        'customer': customer
+    })
+    
 def reloan(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
 
@@ -337,3 +384,34 @@ def mark_payment_paid(request, pk):
         loan.save(update_fields=['remaining_balance'])
 
     return redirect('customer_detail', pk=payment.loan.customer.pk)
+
+
+
+def mark_emergency_paid(request, pk):
+    payment = get_object_or_404(EmergencyPaymentSchedule, pk=pk)
+
+    if not payment.is_paid:
+        payment.is_paid = True
+        payment.save()
+
+        loan = payment.emergency_loan
+
+        # ✅ Deduct ONLY interest
+        loan.remaining_balance -= payment.amount
+
+        if loan.remaining_balance < 0:
+            loan.remaining_balance = 0
+
+        loan.save()
+
+        # ✅ Create NEXT payment only if balance still exists
+        if loan.remaining_balance > 0:
+            next_date = payment.date + timedelta(days=7)
+
+            EmergencyPaymentSchedule.objects.create(
+                emergency_loan=loan,
+                date=next_date,
+                amount=payment.amount
+            )
+
+    return redirect('customer_detail', pk=payment.emergency_loan.customer.pk)

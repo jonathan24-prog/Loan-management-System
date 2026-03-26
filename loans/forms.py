@@ -47,3 +47,49 @@ class LoanForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
+
+
+from django import forms
+from .models import EmergencyLoan  # or EmergencyLoan if you have a separate model
+
+
+class EmergencyLoanForm(forms.ModelForm):
+    class Meta:
+        model = EmergencyLoan  # change to EmergencyLoan if that's your model
+        fields = [
+            'loan_amount',
+            'interest_percent',
+            'schedule_day',
+            'start_date'
+        ]
+
+        widgets = {
+            'loan_amount': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter loan amount'
+            }),
+            'interest_percent': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter interest %'
+            }),
+            'schedule_day': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'start_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+        }
+
+    # Optional validation
+    def clean_interest_percent(self):
+        interest = self.cleaned_data.get('interest_percent')
+        if interest < 0:
+            raise forms.ValidationError("Interest cannot be negative.")
+        return interest
+
+    def clean_loan_amount(self):
+        amount = self.cleaned_data.get('loan_amount')
+        if amount <= 0:
+            raise forms.ValidationError("Loan amount must be greater than 0.")
+        return amount

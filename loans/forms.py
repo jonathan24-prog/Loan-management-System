@@ -50,7 +50,7 @@ class LoanForm(forms.ModelForm):
 
 
 from django import forms
-from .models import EmergencyLoan  # or EmergencyLoan if you have a separate model
+from .models import EmergencyLoan, EmergencyPaymentSchedule  # or EmergencyLoan if you have a separate model
 
 
 class EmergencyLoanForm(forms.ModelForm):
@@ -93,3 +93,11 @@ class EmergencyLoanForm(forms.ModelForm):
         if amount <= 0:
             raise forms.ValidationError("Loan amount must be greater than 0.")
         return amount
+
+class PrincipalPaymentForm(forms.ModelForm):
+    class Meta:
+        model = EmergencyPaymentSchedule
+        fields = ['amount']
+        widgets = {
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter principal payment'}),
+        }

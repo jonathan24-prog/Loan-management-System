@@ -15,6 +15,7 @@ path('customer/<int:pk>/add-emergency-loan/', views.add_emergency_loan, name='ad
 path('customer/<int:pk>/reloan/', views.reloan, name='reloan'),
 path('payment/<int:pk>/paid/', views.mark_payment_paid, name='mark_payment_paid'),
 path('emergency-payment/<int:pk>/paid/', views.mark_emergency_paid, name='mark_emergency_paid'),
+path('emergency-loan/<int:loan_id>/pay-principal/', views.pay_principal, name='pay_principal'),
 
 path('logout/', views.logout_view, name='logout'),
 

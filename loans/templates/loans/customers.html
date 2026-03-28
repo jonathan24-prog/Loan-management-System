@@ -44,6 +44,7 @@
                         <th style="font-weight: 800; color: black;">Name</th>
                         <th style="font-weight: 800; color: black;">Contact Number</th>
                         <th style="font-weight: 800; color: black;">Status</th>
+                        <th style="font-weight: 800; color: black;">Today's Status</th>
                         <th class="text-center" style="font-weight: 800; color: black;">Actions</th>
                     </tr>
                 </thead>
@@ -60,6 +61,14 @@
                                 <span class="badge bg-secondary px-3 py-2">No Loan</span>
                             {% endif %}
                         </td>
+                         <td>
+            {% if customer.today_status == "Paid" %}
+                <span class="badge bg-success px-3 py-2">Paid</span>
+            {% else %}
+                <span class="badge bg-danger px-3 py-2">Unpaid</span>
+            {% endif %}
+        </td>
+
 
                         <td class="text-center">
                             <a href="{% url 'add_loan' customer.pk %}" 

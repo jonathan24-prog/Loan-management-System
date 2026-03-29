@@ -101,25 +101,21 @@
                     {% for sched in loan.schedules.all %}
                     <div class="col-md-4 mb-2">
                         {% if sched.is_paid %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-success text-white shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
-                                <span>✅ Paid</span>
-                            </div>
-                        {% elif sched.date < today %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-danger text-white shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
-                                <span>❌ Overdue</span>
-                            </div>
-                        {% else %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-warning text-dark shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
-                                <a href="{% url 'mark_payment_paid' sched.pk %}" 
-                                    class="btn btn-sm btn-light"
-                                    onclick="return confirm('Mark this payment as paid?');">
-                                        Mark as Paid
-                                    </a>
-                            </div>
-                        {% endif %}
+    <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-success text-white shadow-sm">
+        <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
+        <span>✅ Paid</span>
+    </div>
+{% elif sched.paid_amount > 0 %}
+    <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-info text-white shadow-sm">
+        <span>{{ sched.date }} - ₱ {{ sched.paid_amount }} / ₱{{ sched.amount }}</span>
+        <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Add Payment</a>
+    </div>
+{% else %}
+    <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-warning text-dark shadow-sm">
+        <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
+        <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Add Payment</a>
+    </div>
+{% endif %}
                     </div>
                     {% endfor %}
                 </div>

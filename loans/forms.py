@@ -101,3 +101,11 @@ class PrincipalPaymentForm(forms.ModelForm):
         widgets = {
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter principal payment'}),
         }
+
+from django import forms
+from .models import PaymentSchedule
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = PaymentSchedule
+        fields = ['paid_amount']

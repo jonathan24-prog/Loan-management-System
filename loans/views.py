@@ -393,23 +393,105 @@ def add_emergency_loan(request, pk):
 
 
 # ================= PAYMENTS =================
+from decimal import Decimal
+
+# def mark_payment_paid(request, pk):
+#     payment = get_object_or_404(PaymentSchedule, pk=pk)
+#     loan = payment.loan
+
+#     if request.method == 'POST':
+#         # Get the amount entered by user and convert to Decimal
+#         try:
+#             amount = Decimal(request.POST.get('paid_amount', '0'))
+#         except:
+#             messages.error(request, "Invalid amount entered.")
+#             return redirect('customer_detail', pk=loan.customer.pk)
+
+#         if amount <= 0:
+#             messages.error(request, "Amount must be greater than zero.")
+#             return redirect('customer_detail', pk=loan.customer.pk)
+
+#         # Initialize paid_amount if None
+#         if payment.paid_amount is None:
+#             payment.paid_amount = Decimal('0.00')
+
+#         # Update paid_amount
+#         payment.paid_amount += amount
+
+#         # Check if schedule is fully paid
+#         if payment.paid_amount >= payment.amount:
+#             payment.is_paid = True
+#             payment.paid_amount = payment.amount  # prevent overpayment
+
+#         payment.save()
+
+#         # Update loan remaining balance
+#         loan.remaining_balance -= amount
+#         if loan.remaining_balance < 0:
+#             loan.remaining_balance = 0
+#         loan.save(update_fields=['remaining_balance'])
+
+#         messages.success(request, f"Payment of ₱{amount} recorded successfully.")
+#         return redirect('customer_detail', pk=loan.customer.pk)
+
+#     # GET request: show a form to enter partial payment
+#     return render(request, 'loans/mark_payment.html', {
+#         'payment': payment
+#     })
+
+
+
+from decimal import Decimal
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import PaymentSchedule
+
 def mark_payment_paid(request, pk):
     payment = get_object_or_404(PaymentSchedule, pk=pk)
+    loan = payment.loan
 
-    if not payment.is_paid:
-        payment.is_paid = True
+    if request.method == 'POST':
+        full_payment = request.POST.get('full_payment') == 'on'
+        if full_payment:
+            amount = payment.amount
+        else:
+            try:
+                amount = Decimal(request.POST.get('paid_amount', '0'))
+            except:
+                messages.error(request, "Invalid amount entered.")
+                return redirect('customer_detail', pk=loan.customer.pk)
+
+            if amount <= 0:
+                messages.error(request, "Amount must be greater than zero.")
+                return redirect('customer_detail', pk=loan.customer.pk)
+
+        # Initialize paid_amount if None
+        if payment.paid_amount is None:
+            payment.paid_amount = Decimal('0.00')
+
+        # Update paid_amount
+        payment.paid_amount += amount
+
+        # Check if schedule is fully paid
+        if payment.paid_amount >= payment.amount:
+            payment.is_paid = True
+            payment.paid_amount = payment.amount  # prevent overpayment
+
         payment.save()
 
-        loan = payment.loan
-        loan.remaining_balance -= payment.amount
-
+        # Update loan remaining balance
+        loan.remaining_balance -= amount
         if loan.remaining_balance < 0:
             loan.remaining_balance = 0
-
         loan.save(update_fields=['remaining_balance'])
 
-    return redirect('customer_detail', pk=payment.loan.customer.pk)
+        messages.success(request, f"Payment of ₱{amount} recorded successfully.")
+        return redirect('customer_detail', pk=loan.customer.pk)
 
+    # GET request: show form
+    return render(request, 'loans/mark_payment.html', {
+        'payment': payment
+    })
 
 def mark_emergency_paid(request, pk):
     payment = get_object_or_404(EmergencyPaymentSchedule, pk=pk)

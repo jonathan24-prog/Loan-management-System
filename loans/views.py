@@ -191,7 +191,7 @@ def customers(request):
             else:
                 customer.today_status = "Unpaid"
         else:
-            customer.today_status = "Unpaid"  # No schedules today
+            customer.today_status = "no schedule"  # No schedules today
     # ---------------------------------------------------------
 
     if request.method == "POST":

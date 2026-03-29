@@ -62,12 +62,14 @@
                             {% endif %}
                         </td>
                          <td>
-            {% if customer.today_status == "Paid" %}
-                <span class="badge bg-success px-3 py-2">Paid</span>
-            {% else %}
-                <span class="badge bg-danger px-3 py-2">Unpaid</span>
-            {% endif %}
-        </td>
+                            {% if customer.today_status == "Paid" %}
+                                <span class="badge bg-success px-3 py-2">Paid</span>
+                            {% elif customer.today_status == "Unpaid" %}
+                                <span class="badge bg-danger px-3 py-2">Unpaid</span>
+                            {% else %}
+                                <span class="badge bg-dark px-3 py-2">no schedule</span>
+                            {% endif %}
+                        </td>
 
 
                         <td class="text-center">
@@ -178,7 +180,7 @@
                     Cancel
                 </button>
 
-                <form method="POST" action="{% url 'customer_delete' customer.pk %}">
+                <form method="POST" action="{% url 'customer_delete' customer.id %}">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger">
                         Yes, Delete

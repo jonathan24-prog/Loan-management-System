@@ -7,8 +7,17 @@
     <form method="POST">
         {% csrf_token %}
         <div class="mb-3">
+            <label>Payment Frequency</label>
+            {{ form.payment_frequency }}
+        </div>
+        <div class="mb-3">
             <label>Loan Amount</label>
             {{ form.loan_amount }}
+        </div>
+        <div class="mb-3">
+            <label>Payment per Schedule (Optional)</label>
+            {{ form.payment_amount }}
+            <small class="text-muted">If filled, system will auto-compute due date</small>
         </div>
 
         <div class="mb-3">

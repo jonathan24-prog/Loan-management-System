@@ -14,7 +14,6 @@ class Customer(models.Model):
     def __str__(self):
         return self.full_name
 
-
 # ================= Loan =================
 class Loan(models.Model):
     INTEREST_TYPE_CHOICES = [
@@ -22,10 +21,25 @@ class Loan(models.Model):
         ('amount', 'Fixed Amount'),
     ]
 
+    PAYMENT_FREQUENCY_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+    ]
+
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='loans')
     loan_amount = models.DecimalField(max_digits=10, decimal_places=2)
     interest_type = models.CharField(max_length=10, choices=INTEREST_TYPE_CHOICES, default='percent')
     interest_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # ✅ NEW FIELD
+    payment_frequency = models.CharField(
+        max_length=10,
+        choices=PAYMENT_FREQUENCY_CHOICES,
+        default='daily'
+    )
+
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     remaining_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     start_date = models.DateField()
@@ -37,12 +51,10 @@ class Loan(models.Model):
                 self.balance = self.loan_amount + (self.loan_amount * self.interest_value / 100)
             else:
                 self.balance = self.loan_amount + self.interest_value
-            self.remaining_balance = self.balance
-        super().save(*args, **kwargs)
 
-    @property
-    def total_paid(self):
-        return sum([s.paid_amount for s in self.schedules.all()])
+            self.remaining_balance = self.balance
+
+        super().save(*args, **kwargs)
 
 
 # ================= Payment Schedule =================
@@ -98,6 +110,7 @@ class EmergencyPaymentSchedule(models.Model):
     date = models.DateField()
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     is_paid = models.BooleanField(default=False)
+    paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     payment_type = models.CharField(max_length=10, choices=PAYMENT_TYPE_CHOICES, default='interest')
 
     def __str__(self):

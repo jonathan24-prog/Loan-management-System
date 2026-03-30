@@ -292,6 +292,13 @@ def customer_detail(request, pk):
 
 
 # ================= LOANS =================
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta  # install if needed
+
+from math import ceil
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
+
 def add_loan(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
 
@@ -302,23 +309,98 @@ def add_loan(request, pk):
             loan.customer = customer
             loan.save()
 
-            delta = (loan.due_date - loan.start_date).days + 1
-            daily_amount = loan.balance / delta if delta > 0 else loan.balance
+            schedules = []
+            current_date = loan.start_date
 
-            for i in range(delta):
-                PaymentSchedule.objects.create(
-                    loan=loan,
-                    date=loan.start_date + timedelta(days=i),
-                    amount=daily_amount
-                )
+            # ================= FIXED PAYMENT MODE =================
+            if loan.payment_amount and loan.payment_amount > 0:
+                total_payments = ceil(loan.balance / loan.payment_amount)
+
+                for i in range(total_payments):
+                    if loan.payment_frequency == 'daily':
+                        pay_date = current_date + timedelta(days=i)
+
+                    elif loan.payment_frequency == 'weekly':
+                        pay_date = current_date + timedelta(days=7 * i)
+
+                    elif loan.payment_frequency == 'monthly':
+                        pay_date = current_date + relativedelta(months=i)
+
+                    # LAST PAYMENT ADJUSTMENT
+                    if i == total_payments - 1:
+                        remaining = loan.balance - (loan.payment_amount * (total_payments - 1))
+                        amount = remaining
+                    else:
+                        amount = loan.payment_amount
+
+                    schedules.append(PaymentSchedule(
+                        loan=loan,
+                        date=pay_date,
+                        amount=amount
+                    ))
+
+                # ✅ AUTO SET DUE DATE
+                loan.due_date = schedules[-1].date
+                loan.save(update_fields=['due_date'])
+
+            # ================= NORMAL MODE =================
+            else:
+                current_date = loan.start_date
+
+                if loan.payment_frequency == 'daily':
+                    delta = (loan.due_date - loan.start_date).days + 1
+                    amount = loan.balance / delta
+
+                    for i in range(delta):
+                        schedules.append(PaymentSchedule(
+                            loan=loan,
+                            date=current_date,
+                            amount=amount
+                        ))
+                        current_date += timedelta(days=1)
+
+                elif loan.payment_frequency == 'weekly':
+                    dates = []
+                    while current_date <= loan.due_date:
+                        dates.append(current_date)
+                        current_date += timedelta(days=7)
+
+                    amount = loan.balance / len(dates)
+
+                    for d in dates:
+                        schedules.append(PaymentSchedule(
+                            loan=loan,
+                            date=d,
+                            amount=amount
+                        ))
+
+                elif loan.payment_frequency == 'monthly':
+                    dates = []
+                    while current_date <= loan.due_date:
+                        dates.append(current_date)
+                        current_date += relativedelta(months=1)
+
+                    amount = loan.balance / len(dates)
+
+                    for d in dates:
+                        schedules.append(PaymentSchedule(
+                            loan=loan,
+                            date=d,
+                            amount=amount
+                        ))
+
+            PaymentSchedule.objects.bulk_create(schedules)
 
             return redirect('customer_detail', pk=customer.pk)
+
     else:
         form = LoanForm()
 
-    return render(request, 'loans/add_loan.html', {'form': form, 'customer': customer})
-
-
+    return render(request, 'loans/add_loan.html', {
+        'form': form,
+        'customer': customer
+    })
+    
 def reloan(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
 

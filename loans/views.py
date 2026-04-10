@@ -226,8 +226,8 @@ def customer_delete(request, pk):
 # ================= CUSTOMER DETAIL =================
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
-    loans = customer.loans.all()
-    emergency_loans = customer.emergency_loans.prefetch_related('schedules').all()
+    loans = customer.loans.all().order_by('-id')
+    emergency_loans = customer.emergency_loans.prefetch_related('schedules').all().order_by('-id')
 
     total_income = sum([loan.balance for loan in loans])
 

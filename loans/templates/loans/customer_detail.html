@@ -66,88 +66,6 @@
 
     {% now "Y-m-d" as today %}
 
-    <!-- ================== Loan History ================== -->
-    <h4 class="mb-3">Loan History</h4>
-
-    {% for loan in loans %}
-    <div class="card mb-3 shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <div>
-                Loan Amount: <strong>₱ {{ loan.loan_amount }}</strong>
-                Status: 
-                {% if loan.remaining_balance == 0 %}
-                    <span class="badge bg-success">Paid</span>
-                {% else %}
-                    <span class="badge bg-warning text-dark">Ongoing</span>
-                {% endif %}
-            </div>
-            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#loan{{ loan.id }}">
-                🔽 Details
-            </button>
-        </div>
-
-        <div class="collapse" id="loan{{ loan.id }}">
-            <div class="card-body table-responsive">
-
-                <table class="table table-bordered mb-3">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Interest</th>
-                            <th>Total Balance</th>
-                            <th>Remaining Balance</th>
-                            <th>Start Date</th>
-                            <th>Due Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                {% if loan.interest_type == 'percent' %}
-                                    {{ loan.interest_value }} %
-                                {% else %}
-                                    {{ loan.interest_value }}
-                                {% endif %}
-                            </td>
-                            <td>₱ {{ loan.balance }}</td>
-                            <td>₱ {{ loan.remaining_balance }}</td>
-                            <td>{{ loan.start_date }}</td>
-                            <td>{{ loan.due_date }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <!-- Payment Schedule -->
-                <h6 style="font-weight: bolder;">Payment Schedule</h6>
-                <div class="row">
-                    {% for sched in loan.schedules.all %}
-                    <div class="col-md-4 mb-2">
-                        {% if sched.is_paid %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-success text-white shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
-                                <span>✅ Paid</span>
-                            </div>
-                        {% elif sched.paid_amount > 0 %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-info text-white shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.paid_amount }} / ₱{{ sched.amount }}</span>
-                                <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Add Payment</a>
-                            </div>
-                        {% else %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-warning text-dark shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
-                                <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Add Payment</a>
-                            </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-
-            </div>
-        </div>
-    </div>
-    {% empty %}
-    <p class="text-muted">No loans found for this customer.</p>
-    {% endfor %}
-
     <!-- ================== Emergency Loan History ================== -->
     <h4 class="mb-3 mt-5 text-danger">Emergency Loan History</h4>
 
@@ -254,6 +172,90 @@
     {% empty %}
     <p class="text-muted">No emergency loans found for this customer.</p>
     {% endfor %}
+
+    <!-- ================== Loan History ================== -->
+    <h4 class="mb-3">Loan History</h4>
+
+    {% for loan in loans %}
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+                Loan Amount: <strong>₱ {{ loan.loan_amount }}</strong>
+                Status: 
+                {% if loan.remaining_balance == 0 %}
+                    <span class="badge bg-success">Paid</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">Ongoing</span>
+                {% endif %}
+            </div>
+            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#loan{{ loan.id }}">
+                🔽 Details
+            </button>
+        </div>
+
+        <div class="collapse" id="loan{{ loan.id }}">
+            <div class="card-body table-responsive">
+
+                <table class="table table-bordered mb-3">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Interest</th>
+                            <th>Total Balance</th>
+                            <th>Remaining Balance</th>
+                            <th>Start Date</th>
+                            <th>Due Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                {% if loan.interest_type == 'percent' %}
+                                    {{ loan.interest_value }} %
+                                {% else %}
+                                    {{ loan.interest_value }}
+                                {% endif %}
+                            </td>
+                            <td>₱ {{ loan.balance }}</td>
+                            <td>₱ {{ loan.remaining_balance }}</td>
+                            <td>{{ loan.start_date }}</td>
+                            <td>{{ loan.due_date }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Payment Schedule -->
+                <h6 style="font-weight: bolder;">Payment Schedule</h6>
+                <div class="row">
+                    {% for sched in loan.schedules.all %}
+                    <div class="col-md-4 mb-2">
+                        {% if sched.is_paid %}
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-success text-white shadow-sm">
+                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
+                                <span>✅ Paid</span>
+                            </div>
+                        {% elif sched.paid_amount > 0 %}
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-info text-white shadow-sm">
+                                <span>{{ sched.date }} - ₱ {{ sched.paid_amount }} / ₱{{ sched.amount }}</span>
+                                <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Add Payment</a>
+                            </div>
+                        {% else %}
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-warning text-dark shadow-sm">
+                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
+                                <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Add Payment</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">No loans found for this customer.</p>
+    {% endfor %}
+
+
 
 </div>
 {% endblock %}

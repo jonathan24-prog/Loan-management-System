@@ -3,259 +3,307 @@
 {% block content %}
 
 <style>
-    .sticky-actions {
-        position: sticky;
-        top: 0;
-        z-index: 1020;
+/* ================= MOBILE APP UI ================= */
+
+.page-title {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.sticky-actions {
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    background: white;
+    border-radius: 12px;
+}
+
+.action-btn {
+    border-radius: 12px;
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+/* Customer card */
+.customer-card {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+/* Stat cards */
+.stat-card {
+    border-radius: 14px;
+    padding: 12px;
+    color: white;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+.stat-title {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* Loan cards */
+.loan-card {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    margin-bottom: 12px;
+}
+
+/* Schedule boxes */
+.schedule-box {
+    border-radius: 12px;
+    padding: 8px;
+    font-size: 12px;
+}
+
+/* Mobile spacing */
+@media (max-width: 768px) {
+    .container {
+        padding: 12px;
     }
+
+    .action-btn {
+        flex: 1;
+        text-align: center;
+    }
+}
 </style>
 
-<div class="container mt-4">
+<div class="container mt-3">
 
-    <!-- ================== STICKY ACTION BAR ================== -->
-    <div class="sticky-actions bg-white shadow-sm p-3 mb-3 rounded">
-        <a href="{% url 'add_loan' customer.pk %}" class="btn btn-success me-2 mb-2">
-            <i class="bi bi-plus-circle"></i> Add Loan
+    <!-- ================= STICKY ACTION BAR ================= -->
+    <div class="sticky-actions shadow-sm p-2 mb-3 d-flex flex-wrap gap-2">
+
+        <a href="{% url 'add_loan' customer.pk %}" class="btn btn-success action-btn">
+            ➕ Loan
         </a>
-        <a href="{% url 'add_emergency_loan' customer.pk %}" class="btn btn-danger me-2 mb-2">
-            <i class="bi bi-plus-circle"></i> Add Emergency Loan
+
+        <a href="{% url 'add_emergency_loan' customer.pk %}" class="btn btn-danger action-btn">
+            🚨 Emergency
         </a>
-        <a href="{% url 'reloan' customer.pk %}" class="btn btn-warning me-2 mb-2">
-            <i class="bi bi-arrow-clockwise"></i> Reloan
+
+        <a href="{% url 'reloan' customer.pk %}" class="btn btn-warning action-btn">
+            🔄 Reloan
         </a>
-        <a href="{% url 'customers' %}" class="btn btn-secondary mb-2">
-            <i class="bi bi-arrow-left-circle"></i> Back
+
+        <a href="{% url 'customers' %}" class="btn btn-secondary action-btn">
+            ⬅ Back
         </a>
+
     </div>
 
-    <h2 class="mb-3">Customer Details</h2>
+    <!-- ================= CUSTOMER HEADER ================= -->
+    <div class="customer-card card p-3 mb-3">
 
-    <!-- Customer Info Card -->
-    <div class="card shadow-sm p-3 mb-4">
-        <h5 class="mb-2"><i class="bi bi-person-circle"></i> {{ customer.full_name }}</h5>
-        <p class="mb-0"><strong>Contact:</strong> {{ customer.contact_number }}</p>
+        <div class="page-title">{{ customer.full_name }}</div>
+        <div class="text-muted">📞 {{ customer.contact_number }}</div>
 
-        <div class="row mb-4 mt-3">
+        <!-- STATS -->
+        <div class="row mt-3 g-2">
 
-            <!-- Total Released -->
-            <div class="col-md-4 mb-2">
-                <div class="p-3 border rounded bg-primary text-white shadow-sm">
-                    <small>Total Released</small>
-                    <h5 class="mb-0">₱ {{ total_released }}</h5>
+            <div class="col-4">
+                <div class="stat-card" style="background:#3498db;">
+                    <div class="stat-title">Released</div>
+                    <div class="stat-value">₱{{ total_released }}</div>
                 </div>
             </div>
 
-            <!-- Total Collection -->
-            <div class="col-md-4 mb-2">
-                <div class="p-3 border rounded bg-success text-white shadow-sm">
-                    <small>Total Collection</small>
-                    <h5 class="mb-0">₱ {{ total_collection }}</h5>
+            <div class="col-4">
+                <div class="stat-card" style="background:#2ecc71;">
+                    <div class="stat-title">Collection</div>
+                    <div class="stat-value">₱{{ total_collection }}</div>
                 </div>
             </div>
 
-            <!-- Total Interest -->
-            <div class="col-md-4 mb-2">
-                <div class="p-3 border rounded bg-warning text-dark shadow-sm">
-                    <small>Total Interest Earned</small>
-                    <h5 class="mb-0">₱ {{ total_interest_collected }}</h5>
+            <div class="col-4">
+                <div class="stat-card" style="background:#f1c40f; color:#000;">
+                    <div class="stat-title">Interest</div>
+                    <div class="stat-value">₱{{ total_interest_collected }}</div>
                 </div>
             </div>
 
         </div>
+
     </div>
 
     {% now "Y-m-d" as today %}
 
-    <!-- ================== Emergency Loan History ================== -->
-    <h4 class="mb-3 mt-5 text-danger">Emergency Loan History</h4>
+    <!-- ================= EMERGENCY LOANS ================= -->
+    <h5 class="text-danger fw-bold mb-3">Emergency Loans</h5>
 
     {% for e_loan in emergency_loans %}
-    <div class="card mb-3 border-danger shadow-sm">
+    <div class="loan-card card">
 
         <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center flex-wrap">
-            <span><strong>Loan Amount:</strong> ₱ {{ e_loan.loan_amount }}</span>
+            <span>₱{{ e_loan.loan_amount }}</span>
 
-            <span>
-                {% if e_loan.remaining_principal == 0 %}
-                    <span class="badge bg-success">Paid</span>
-                {% else %}
-                    <span class="badge bg-warning text-dark">Ongoing</span>
-                {% endif %}
-            </span>
+            {% if e_loan.remaining_principal == 0 %}
+                <span class="badge bg-success">Paid</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">Ongoing</span>
+            {% endif %}
 
-            <span><strong>Interest:</strong> {{ e_loan.interest_percent }}%</span>
-
-            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#eLoan{{ e_loan.id }}">
-                🔽 Details
+            <button class="btn btn-light btn-sm" data-bs-toggle="collapse" data-bs-target="#eLoan{{ e_loan.id }}">
+                Details
             </button>
         </div>
 
         <div class="collapse" id="eLoan{{ e_loan.id }}">
             <div class="card-body">
 
-                <div class="row mb-3">
-                    <div class="col-md-6 mb-2">
-                        <div class="p-2 border rounded bg-light shadow-sm">
-                            <small class="text-muted">Start Date</small>
-                            <h6 class="mb-0">{{ e_loan.start_date }}</h6>
+                <div class="row g-2">
+
+                    <div class="col-6">
+                        <div class="schedule-box bg-light">
+                            Start: {{ e_loan.start_date }}
                         </div>
                     </div>
 
-                    <div class="col-md-6 mb-2">
-                        <div class="p-2 border rounded bg-light shadow-sm">
-                            <small class="text-muted">Payment Day</small>
-                            <h6 class="mb-0">{{ e_loan.schedule_day }}</h6>
+                    <div class="col-6">
+                        <div class="schedule-box bg-light">
+                            Day: {{ e_loan.schedule_day }}
                         </div>
                     </div>
 
-                    <div class="col-md-6 mb-2">
-                        <div class="p-2 border rounded bg-light shadow-sm">
-                            <small class="text-muted">Original Principal</small>
-                            <h6 class="mb-0">₱ {{ e_loan.loan_amount }}</h6>
+                    <div class="col-6">
+                        <div class="schedule-box bg-light">
+                            Remaining: ₱{{ e_loan.remaining_principal }}
                         </div>
                     </div>
 
-                    <div class="col-md-6 mb-2">
-                        <div class="p-2 border rounded bg-light shadow-sm">
-                            <small class="text-muted">Remaining Principal</small>
-                            <h6 class="mb-0">₱ {{ e_loan.remaining_principal }}</h6>
+                    <div class="col-6">
+                        <div class="schedule-box bg-warning text-dark">
+                            Weekly: ₱{{ e_loan.current_weekly_interest }}
                         </div>
                     </div>
 
-                    <div class="col-md-6 mb-2">
-                        <div class="p-2 border rounded bg-warning text-dark shadow-sm">
-                            <small class="text-muted">Weekly Interest</small>
-                            <h6 class="mb-0">₱ {{ e_loan.current_weekly_interest }}</h6>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6 mb-2">
-                        <div class="p-2 border rounded bg-success text-white shadow-sm">
-                            <small class="text-muted">Total Interest Paid</small>
-                            <h6 class="mb-0">₱ {{ e_loan.total_interest_paid }}</h6>
-                        </div>
-                    </div>
                 </div>
 
-                <a href="{% url 'pay_principal' e_loan.pk %}" class="btn btn-info btn-sm mb-3">
-                    💰 Pay Principal
+                <a href="{% url 'pay_principal' e_loan.pk %}" class="btn btn-info btn-sm mt-2">
+                    Pay Principal
                 </a>
 
-                <h6 class="mt-3 mb-2 fw-bold">Weekly Payment Schedule</h6>
+                <hr>
 
-                <div class="row">
+                <h6>Schedule</h6>
+
+                <div class="row g-2">
+
                     {% for sched in e_loan.schedules.all %}
-                    <div class="col-md-4 mb-2">
+                    <div class="col-12">
+
                         {% if sched.is_paid %}
-                            <div class="p-2 border rounded bg-success text-white shadow-sm">
-                                {{ sched.date }} - ₱ {{ sched.amount }} ✅
+                            <div class="schedule-box bg-success text-white">
+                                {{ sched.date }} - ₱{{ sched.amount }} ✅
                             </div>
+
                         {% elif sched.date < today %}
-                            <div class="p-2 border rounded bg-danger text-white shadow-sm">
-                                {{ sched.date }} - ₱ {{ sched.amount }} ❌ Overdue
+                            <div class="schedule-box bg-danger text-white">
+                                {{ sched.date }} - ₱{{ sched.amount }} ❌ Overdue
                             </div>
+
                         {% else %}
-                            <div class="p-2 border rounded bg-warning text-dark shadow-sm d-flex justify-content-between">
-                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
+                            <div class="schedule-box bg-warning text-dark d-flex justify-content-between">
+                                {{ sched.date }} - ₱{{ sched.amount }}
                                 <a href="{% url 'mark_emergency_paid' sched.pk %}" class="btn btn-sm btn-light">
                                     Pay
                                 </a>
                             </div>
                         {% endif %}
+
                     </div>
                     {% endfor %}
+
                 </div>
 
             </div>
         </div>
+
     </div>
     {% empty %}
-    <p class="text-muted">No emergency loans found for this customer.</p>
+    <p class="text-muted">No emergency loans found.</p>
     {% endfor %}
 
-    <!-- ================== Loan History ================== -->
-    <h4 class="mb-3">Loan History</h4>
+    <!-- ================= LOANS ================= -->
+    <h5 class="fw-bold mt-4">Loan History</h5>
 
     {% for loan in loans %}
-    <div class="card mb-3 shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <div>
-                Loan Amount: <strong>₱ {{ loan.loan_amount }}</strong>
-                Status: 
-                {% if loan.remaining_balance == 0 %}
-                    <span class="badge bg-success">Paid</span>
-                {% else %}
-                    <span class="badge bg-warning text-dark">Ongoing</span>
-                {% endif %}
-            </div>
-            <button class="btn btn-light btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#loan{{ loan.id }}">
-                🔽 Details
+    <div class="loan-card card">
+
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap">
+            <span>₱{{ loan.loan_amount }}</span>
+
+            {% if loan.remaining_balance == 0 %}
+                <span class="badge bg-success">Paid</span>
+            {% else %}
+                <span class="badge bg-warning text-dark">Ongoing</span>
+            {% endif %}
+
+            <button class="btn btn-light btn-sm" data-bs-toggle="collapse" data-bs-target="#loan{{ loan.id }}">
+                Details
             </button>
         </div>
 
         <div class="collapse" id="loan{{ loan.id }}">
-            <div class="card-body table-responsive">
+            <div class="card-body">
 
-                <table class="table table-bordered mb-3">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Interest</th>
-                            <th>Total Balance</th>
-                            <th>Remaining Balance</th>
-                            <th>Start Date</th>
-                            <th>Due Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                {% if loan.interest_type == 'percent' %}
-                                    {{ loan.interest_value }} %
-                                {% else %}
-                                    {{ loan.interest_value }}
-                                {% endif %}
-                            </td>
-                            <td>₱ {{ loan.balance }}</td>
-                            <td>₱ {{ loan.remaining_balance }}</td>
-                            <td>{{ loan.start_date }}</td>
-                            <td>{{ loan.due_date }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">Balance: ₱{{ loan.balance }}</div>
+                    <div class="col-6">Remaining: ₱{{ loan.remaining_balance }}</div>
+                    <div class="col-6">Start: {{ loan.start_date }}</div>
+                    <div class="col-6">Due: {{ loan.due_date }}</div>
+                </div>
 
-                <!-- Payment Schedule -->
-                <h6 style="font-weight: bolder;">Payment Schedule</h6>
-                <div class="row">
+                <h6>Schedule</h6>
+
+                <div class="row g-2">
+
                     {% for sched in loan.schedules.all %}
-                    <div class="col-md-4 mb-2">
+                    <div class="col-12">
+
                         {% if sched.is_paid %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-success text-white shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
-                                <span>✅ Paid</span>
+                            <div class="schedule-box bg-success text-white">
+                                {{ sched.date }} - ₱{{ sched.amount }} ✅ Paid
                             </div>
+
                         {% elif sched.paid_amount > 0 %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-info text-white shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.paid_amount }} / ₱{{ sched.amount }}</span>
-                                <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Add Payment</a>
+                            <div class="schedule-box bg-info text-white d-flex justify-content-between">
+                                {{ sched.date }} - ₱{{ sched.paid_amount }}/{{ sched.amount }}
+                                <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">
+                                    Pay
+                                </a>
                             </div>
+
                         {% else %}
-                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-warning text-dark shadow-sm">
-                                <span>{{ sched.date }} - ₱ {{ sched.amount }}</span>
-                                <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">Add Payment</a>
+                            <div class="schedule-box bg-warning text-dark d-flex justify-content-between">
+                                {{ sched.date }} - ₱{{ sched.amount }}
+                                <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">
+                                    Pay
+                                </a>
                             </div>
                         {% endif %}
+
                     </div>
                     {% endfor %}
+
                 </div>
 
             </div>
         </div>
+
     </div>
     {% empty %}
-    <p class="text-muted">No loans found for this customer.</p>
+    <p class="text-muted">No loans found.</p>
     {% endfor %}
 
-
-
 </div>
+
 {% endblock %}

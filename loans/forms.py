@@ -31,7 +31,9 @@ class LoanForm(forms.ModelForm):
     PAYMENT_FREQUENCY_CHOICES = [
         ('daily', 'Daily'),
         ('weekly', 'Weekly'),
+        ('semi_monthly', 'Semi_monthly'),
         ('monthly', 'Monthly'),
+        
     ]
 
     interest_type = forms.ChoiceField(

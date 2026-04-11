@@ -24,6 +24,7 @@ class Loan(models.Model):
     PAYMENT_FREQUENCY_CHOICES = [
         ('daily', 'Daily'),
         ('weekly', 'Weekly'),
+        ('semi_monthly', 'Semi_monthly'),
         ('monthly', 'Monthly'),
     ]
 
@@ -35,7 +36,7 @@ class Loan(models.Model):
 
     # ✅ NEW FIELD
     payment_frequency = models.CharField(
-        max_length=10,
+        max_length=15,
         choices=PAYMENT_FREQUENCY_CHOICES,
         default='daily'
     )
@@ -44,6 +45,7 @@ class Loan(models.Model):
     remaining_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     start_date = models.DateField()
     due_date = models.DateField()
+    
 
     def save(self, *args, **kwargs):
         if not self.pk:

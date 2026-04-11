@@ -1,115 +1,155 @@
 {% extends 'loans/base.html' %}
 
 {% block content %}
+
+<style>
+/* ===== MOBILE APP STYLE UI ===== */
+.app-card {
+    border-radius: 18px;
+    border: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.app-title {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.app-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Smooth spacing for mobile */
+.container-fluid {
+    padding: 15px;
+}
+
+/* Better chart spacing */
+.chart-card {
+    border-radius: 18px;
+}
+</style>
+
 <div class="container-fluid">
 
     <!-- PAGE TITLE + FILTER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">Dashboard</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold mb-0">Dashboard</h4>
+    </div>
 
-        <div>
-            <a href="?filter=day" class="btn btn-sm btn-outline-primary">Today</a>
-            <a href="?filter=week" class="btn btn-sm btn-outline-primary">This Week</a>
-            <a href="?filter=month" class="btn btn-sm btn-outline-primary">This Month</a>
-            <a href="?filter=year" class="btn btn-sm btn-outline-primary">This Year</a>
-        </div>
+    <!-- MOBILE STYLE FILTER TABS -->
+    <div class="d-flex gap-2 overflow-auto pb-2 mb-3" style="white-space: nowrap;">
+        <a href="?filter=day" class="btn btn-sm btn-primary rounded-pill px-3">Today</a>
+        <a href="?filter=week" class="btn btn-sm btn-outline-primary rounded-pill px-3">Week</a>
+        <a href="?filter=month" class="btn btn-sm btn-outline-primary rounded-pill px-3">Month</a>
+        <a href="?filter=year" class="btn btn-sm btn-outline-primary rounded-pill px-3">Year</a>
     </div>
 
     <!-- MAIN STATS -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(89, 149, 184);">
-                <small>Total Customers</small>
-                <h2 class="fw-bold mb-0">{{ total_customers }}</h2>
+    <div class="row g-3 mb-3">
+
+        <div class="col-6 col-md-3">
+            <div class="card app-card p-3 text-white"
+                 style="background: linear-gradient(135deg,#3498db,#5dade2);">
+                <div class="app-title">Total Customers</div>
+                <div class="app-value">{{ total_customers }}</div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(89, 184, 121);">
-                <small>Active Customers</small>
-                <h2 class="fw-bold mb-0">{{ active_customers }}</h2>
+        <div class="col-6 col-md-3">
+            <div class="card app-card p-3 text-white"
+                 style="background: linear-gradient(135deg,#2ecc71,#58d68d);">
+                <div class="app-title">Active Customers</div>
+                <div class="app-value">{{ active_customers }}</div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(189, 169, 59);">
-                <small>Income (Filtered)</small>
-                <h2 class="fw-bold mb-0">₱ {{ total_collection }}</h2>
+        <div class="col-6 col-md-3">
+            <div class="card app-card p-3 text-white"
+                 style="background: linear-gradient(135deg,#f1c40f,#f7dc6f);">
+                <div class="app-title">Income (Filtered)</div>
+                <div class="app-value">₱ {{ total_collection }}</div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(184, 89, 123);">
-                <small>Overdue Payments</small>
-                <h2 class="fw-bold mb-0">{{ overdue_payments }}</h2>
+        <div class="col-6 col-md-3">
+            <div class="card app-card p-3 text-white"
+                 style="background: linear-gradient(135deg,#e74c3c,#ec7063);">
+                <div class="app-title">Overdue Payments</div>
+                <div class="app-value">{{ overdue_payments }}</div>
             </div>
         </div>
+
     </div>
 
     <!-- FINANCIAL SUMMARY -->
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-3">
 
-        <!-- Total Released -->
-        <div class="col-md-4">
-            <div class="card shadow-sm p-3 text-white" style="background-color:#3498db;">
-                <small>Total Released</small>
-                <h3 class="fw-bold mb-0">₱ {{ total_released }}</h3>
+        <div class="col-12 col-md-4">
+            <div class="card app-card p-3 text-white" style="background:#3498db;">
+                <div class="app-title">Total Released</div>
+                <div class="app-value">₱ {{ total_released }}</div>
             </div>
         </div>
 
-        <!-- Total Collection -->
-        <div class="col-md-4">
-            <div class="card shadow-sm p-3 text-white" style="background-color:#2ecc71;">
-                <small>Total Collection</small>
-                <h3 class="fw-bold mb-0">₱ {{ total_collection }}</h3>
+        <div class="col-12 col-md-4">
+            <div class="card app-card p-3 text-white" style="background:#2ecc71;">
+                <div class="app-title">Total Collection</div>
+                <div class="app-value">₱ {{ total_collection }}</div>
             </div>
         </div>
 
-        <!-- Total Interest -->
-        <div class="col-md-4">
-            <div class="card shadow-sm p-3 text-dark" style="background-color:#f1c40f;">
-                <small>Total Interest Earned</small>
-                <h3 class="fw-bold mb-0">₱ {{ total_interest_collected }}</h3>
+        <div class="col-12 col-md-4">
+            <div class="card app-card p-3 text-dark" style="background:#f1c40f;">
+                <div class="app-title">Total Interest Earned</div>
+                <div class="app-value">₱ {{ total_interest_collected }}</div>
             </div>
         </div>
 
     </div>
 
     <!-- LOAN ANALYTICS -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm p-3">
-                <small>Total Loans</small>
-                <h2 class="fw-bold">{{ total_loans }}</h2>
+    <div class="row g-3 mb-3">
+
+        <div class="col-12 col-md-6">
+            <div class="card app-card p-3">
+                <div class="app-title">Total Loans</div>
+                <div class="app-value">{{ total_loans }}</div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(89, 184, 184);">
-                <small>Ongoing Loans</small>
-                <h2 class="fw-bold mb-0">{{ ongoing_loans }}</h2>
+        <div class="col-6 col-md-3">
+            <div class="card app-card p-3 text-white"
+                 style="background: linear-gradient(135deg,#1abc9c,#48c9b0);">
+                <div class="app-title">Ongoing Loans</div>
+                <div class="app-value">{{ ongoing_loans }}</div>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(184, 123, 89);">
-                <small>Paid Loans</small>
-                <h2 class="fw-bold mb-0">{{ paid_loans }}</h2>
+        <div class="col-6 col-md-3">
+            <div class="card app-card p-3 text-white"
+                 style="background: linear-gradient(135deg,#e67e22,#f0b27a);">
+                <div class="app-title">Paid Loans</div>
+                <div class="app-value">{{ paid_loans }}</div>
             </div>
         </div>
+
     </div>
 
     <!-- CHART -->
-    <div class="card shadow-sm p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">📊 Income Analytics</h5>
-            <small class="text-muted">Filter: {{ filter_type|title }}</small>
-        </div>
+    <div class="card app-card p-3 chart-card">
 
-        <canvas id="incomeChart" height="100"></canvas>
+        <h6 class="mb-1">Income Analytics</h6>
+        <small class="text-muted d-block mb-3">
+            Filter: {{ filter_type|title }}
+        </small>
+
+        <canvas id="incomeChart" height="120"></canvas>
     </div>
 
 </div>
+
 {% endblock %}
 
 
@@ -140,7 +180,7 @@
         options: {
             responsive: true,
             plugins: {
-                legend: { display: true }
+                legend: { display: false }
             },
             scales: {
                 y: {

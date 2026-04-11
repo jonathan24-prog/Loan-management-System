@@ -323,6 +323,15 @@ def add_loan(request, pk):
                     elif loan.payment_frequency == 'weekly':
                         pay_date = current_date + timedelta(days=7 * i)
 
+                    elif loan.payment_frequency == 'semi_monthly':
+                        base_date = current_date + relativedelta(months=i // 2)
+
+                        if i % 2 == 0:
+                            pay_date = base_date.replace(day=15)
+                        else:
+                            last_day = calendar.monthrange(base_date.year, base_date.month)[1]
+                            pay_date = base_date.replace(day=last_day)
+
                     elif loan.payment_frequency == 'monthly':
                         pay_date = current_date + relativedelta(months=i)
 
@@ -364,6 +373,46 @@ def add_loan(request, pk):
                     while current_date <= loan.due_date:
                         dates.append(current_date)
                         current_date += timedelta(days=7)
+
+                    amount = loan.balance / len(dates)
+
+                    for d in dates:
+                        schedules.append(PaymentSchedule(
+                            loan=loan,
+                            date=d,
+                            amount=amount
+                        ))
+
+                elif loan.payment_frequency == 'semi_monthly':
+                    import calendar
+
+                    dates = []
+                    temp_date = current_date
+
+                    while temp_date <= loan.due_date:
+                        year = temp_date.year
+                        month = temp_date.month
+
+                        # 15th
+                        fifteenth = temp_date.replace(day=15)
+
+                        # End of month
+                        last_day = calendar.monthrange(year, month)[1]
+                        end_month = temp_date.replace(day=last_day)
+
+                        # Add 15th if valid
+                        if fifteenth >= current_date and fifteenth <= loan.due_date:
+                            dates.append(fifteenth)
+
+                        # Add end of month if valid
+                        if end_month >= current_date and end_month <= loan.due_date:
+                            dates.append(end_month)
+
+                        # Move to next month
+                        temp_date += relativedelta(months=1)
+
+                    # Remove duplicates & sort (important!)
+                    dates = sorted(list(set(dates)))
 
                     amount = loan.balance / len(dates)
 

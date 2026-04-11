@@ -6,20 +6,36 @@
 
     <form method="POST">
         {% csrf_token %}
+
         <div class="mb-3">
             <label>Payment Frequency</label>
             {{ form.payment_frequency }}
         </div>
+
         <div class="mb-3">
             <label>Loan Amount</label>
             {{ form.loan_amount }}
         </div>
+
+        
+
+        <!-- PAYMENT PER SCHEDULE -->
         <div class="mb-3">
             <label>Payment per Schedule (Optional)</label>
-            {{ form.payment_amount }}
+            
+            {{ form.payment_amount.as_widget }}
+            <!-- CHECKBOX -->
+            <div class="mb-3">
+                <label>
+                    <input type="checkbox" id="autoPaymentToggle">
+                    Auto-compute payment per schedule
+                </label>
+            </div>
+
             <small class="text-muted">If filled, system will auto-compute due date</small>
         </div>
 
+        
         <div class="mb-3">
             <label>Interest Type</label>
             {{ form.interest_type }}
@@ -37,11 +53,37 @@
 
         <div class="mb-3">
             <label>Due Date</label>
-            {{ form.due_date }}
+            {{ form.due_date.as_widget }}
         </div>
 
         <button type="submit" class="btn btn-success">Add Loan</button>
         <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
+
+<!-- JS LOGIC -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggle = document.getElementById("autoPaymentToggle");
+        const paymentInput = document.querySelector("input[name='payment_amount']");
+
+        function updateState() {
+            if (toggle.checked) {
+                paymentInput.disabled = false;
+                paymentInput.style.backgroundColor = "white";
+            } else {
+                paymentInput.disabled = true;
+                paymentInput.value = "";
+                paymentInput.style.backgroundColor = "#e9ecef";
+            }
+        }
+ // run once on page load
+        updateState();
+
+        // run when checkbox changes
+        toggle.addEventListener("change", updateState);
+    });
+
+</script>
+
 {% endblock %}

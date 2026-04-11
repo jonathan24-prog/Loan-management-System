@@ -577,12 +577,18 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import PaymentSchedule
 
+from decimal import Decimal
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
+from django.utils import timezone
+
 def mark_payment_paid(request, pk):
     payment = get_object_or_404(PaymentSchedule, pk=pk)
     loan = payment.loan
 
     if request.method == 'POST':
         full_payment = request.POST.get('full_payment') == 'on'
+
         if full_payment:
             amount = payment.amount
         else:
@@ -596,21 +602,25 @@ def mark_payment_paid(request, pk):
                 messages.error(request, "Amount must be greater than zero.")
                 return redirect('customer_detail', pk=loan.customer.pk)
 
-        # Initialize paid_amount if None
+        # initialize if empty
         if payment.paid_amount is None:
             payment.paid_amount = Decimal('0.00')
 
-        # Update paid_amount
+        # update payment
         payment.paid_amount += amount
 
-        # Check if schedule is fully paid
+        # set timestamp when first payment happens
+        if not payment.paid_at:
+            payment.paid_at = timezone.now()
+
+        # mark fully paid
         if payment.paid_amount >= payment.amount:
             payment.is_paid = True
-            payment.paid_amount = payment.amount  # prevent overpayment
+            payment.paid_amount = payment.amount
 
         payment.save()
 
-        # Update loan remaining balance
+        # update loan balance
         loan.remaining_balance -= amount
         if loan.remaining_balance < 0:
             loan.remaining_balance = 0
@@ -619,7 +629,8 @@ def mark_payment_paid(request, pk):
         messages.success(request, f"Payment of ₱{amount} recorded successfully.")
         return redirect('customer_detail', pk=loan.customer.pk)
 
-    # GET request: show form
+        
+
     return render(request, 'loans/mark_payment.html', {
         'payment': payment
     })
@@ -631,6 +642,11 @@ def mark_emergency_paid(request, pk):
     if not payment.is_paid:
         payment.is_paid = True
         payment.paid_amount = payment.amount
+
+        # ✅ SET PAYMENT TIME
+        if not payment.paid_at:
+            payment.paid_at = timezone.now()
+
         payment.save()
 
         if payment.payment_type == 'principal':
@@ -641,6 +657,7 @@ def mark_emergency_paid(request, pk):
 
         if payment.payment_type == 'interest' and loan.remaining_principal > 0:
             next_date = payment.date + timedelta(days=7)
+
             EmergencyPaymentSchedule.objects.create(
                 emergency_loan=loan,
                 date=next_date,
@@ -649,7 +666,6 @@ def mark_emergency_paid(request, pk):
             )
 
     return redirect('customer_detail', pk=loan.customer.pk)
-
 
 def pay_principal(request, loan_id):
     loan = get_object_or_404(EmergencyLoan, pk=loan_id)

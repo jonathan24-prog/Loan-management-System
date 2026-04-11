@@ -60,6 +60,9 @@ class Loan(models.Model):
 
 
 # ================= Payment Schedule =================
+from django.db import models
+from django.utils import timezone
+
 class PaymentSchedule(models.Model):
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='schedules')
     date = models.DateField()
@@ -67,8 +70,17 @@ class PaymentSchedule(models.Model):
     paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     is_paid = models.BooleanField(default=False)
 
+    # ✅ NEW FIELD (actual payment timestamp)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
     def save(self, *args, **kwargs):
+        # auto mark paid
         self.is_paid = self.paid_amount >= self.amount
+
+        # set payment timestamp only when first fully paid
+        if self.is_paid and not self.paid_at:
+            self.paid_at = timezone.now()
+
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -104,16 +116,37 @@ class EmergencyLoan(models.Model):
 
 class EmergencyPaymentSchedule(models.Model):
     PAYMENT_TYPE_CHOICES = [
-        ('interest','Interest'),
-        ('principal','Principal'),
+        ('interest', 'Interest'),
+        ('principal', 'Principal'),
     ]
 
-    emergency_loan = models.ForeignKey(EmergencyLoan, on_delete=models.CASCADE, related_name='schedules')
+    emergency_loan = models.ForeignKey(
+        EmergencyLoan,
+        on_delete=models.CASCADE,
+        related_name='schedules'
+    )
     date = models.DateField()
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     is_paid = models.BooleanField(default=False)
     paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    payment_type = models.CharField(max_length=10, choices=PAYMENT_TYPE_CHOICES, default='interest')
+    payment_type = models.CharField(
+        max_length=10,
+        choices=PAYMENT_TYPE_CHOICES,
+        default='interest'
+    )
+
+    # ✅ NEW FIELD (timestamp)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # auto mark paid
+        self.is_paid = self.paid_amount >= self.amount
+
+        # set timestamp only once when first fully paid
+        if self.is_paid and not self.paid_at:
+            self.paid_at = timezone.now()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.emergency_loan.customer.full_name} - {self.date} ({self.payment_type})"

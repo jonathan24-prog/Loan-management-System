@@ -3,12 +3,7 @@
 {% block content %}
 
 <style>
-/* ================= MOBILE APP UI ================= */
-
-.page-title {
-    font-size: 20px;
-    font-weight: 700;
-}
+.page-title { font-size: 20px; font-weight: 700; }
 
 .sticky-actions {
     position: sticky;
@@ -24,14 +19,12 @@
     padding: 6px 10px;
 }
 
-/* Customer card */
 .customer-card {
     border-radius: 16px;
     border: none;
     box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
-/* Stat cards */
 .stat-card {
     border-radius: 14px;
     padding: 12px;
@@ -39,17 +32,9 @@
     box-shadow: 0 6px 15px rgba(0,0,0,0.08);
 }
 
-.stat-title {
-    font-size: 12px;
-    opacity: 0.9;
-}
+.stat-title { font-size: 12px; opacity: 0.9; }
+.stat-value { font-size: 18px; font-weight: 700; }
 
-.stat-value {
-    font-size: 18px;
-    font-weight: 700;
-}
-
-/* Loan cards */
 .loan-card {
     border-radius: 16px;
     border: none;
@@ -57,46 +42,27 @@
     margin-bottom: 12px;
 }
 
-/* Schedule boxes */
 .schedule-box {
     border-radius: 12px;
     padding: 8px;
     font-size: 12px;
 }
 
-/* Mobile spacing */
 @media (max-width: 768px) {
-    .container {
-        padding: 12px;
-    }
-
-    .action-btn {
-        flex: 1;
-        text-align: center;
-    }
+    .container { padding: 12px; }
+    .action-btn { flex: 1; text-align: center; }
 }
 </style>
 
 <div class="container mt-3">
 
-    <!-- ================= STICKY ACTION BAR ================= -->
+    <!-- ================= ACTION BAR ================= -->
     <div class="sticky-actions shadow-sm p-2 mb-3 d-flex flex-wrap gap-2">
 
-        <a href="{% url 'add_loan' customer.pk %}" class="btn btn-success action-btn">
-            ➕ Loan
-        </a>
-
-        <a href="{% url 'add_emergency_loan' customer.pk %}" class="btn btn-danger action-btn">
-            🚨 Emergency
-        </a>
-
-        <a href="{% url 'reloan' customer.pk %}" class="btn btn-warning action-btn">
-            🔄 Reloan
-        </a>
-
-        <a href="{% url 'customers' %}" class="btn btn-secondary action-btn">
-            ⬅ Back
-        </a>
+        <a href="{% url 'add_loan' customer.pk %}" class="btn btn-success action-btn">➕ Loan</a>
+        <a href="{% url 'add_emergency_loan' customer.pk %}" class="btn btn-danger action-btn">🚨 Emergency</a>
+        <a href="{% url 'reloan' customer.pk %}" class="btn btn-warning action-btn">🔄 Reloan</a>
+        <a href="{% url 'customers' %}" class="btn btn-secondary action-btn">⬅ Back</a>
 
     </div>
 
@@ -106,7 +72,6 @@
         <div class="page-title">{{ customer.full_name }}</div>
         <div class="text-muted">📞 {{ customer.contact_number }}</div>
 
-        <!-- STATS -->
         <div class="row mt-3 g-2">
 
             <div class="col-4">
@@ -160,31 +125,10 @@
             <div class="card-body">
 
                 <div class="row g-2">
-
-                    <div class="col-6">
-                        <div class="schedule-box bg-light">
-                            Start: {{ e_loan.start_date }}
-                        </div>
-                    </div>
-
-                    <div class="col-6">
-                        <div class="schedule-box bg-light">
-                            Day: {{ e_loan.schedule_day }}
-                        </div>
-                    </div>
-
-                    <div class="col-6">
-                        <div class="schedule-box bg-light">
-                            Remaining: ₱{{ e_loan.remaining_principal }}
-                        </div>
-                    </div>
-
-                    <div class="col-6">
-                        <div class="schedule-box bg-warning text-dark">
-                            Weekly: ₱{{ e_loan.current_weekly_interest }}
-                        </div>
-                    </div>
-
+                    <div class="col-6 schedule-box bg-light">Start: {{ e_loan.start_date }}</div>
+                    <div class="col-6 schedule-box bg-light">Day: {{ e_loan.schedule_day }}</div>
+                    <div class="col-6 schedule-box bg-light">Remaining: ₱{{ e_loan.remaining_principal }}</div>
+                    <div class="col-6 schedule-box bg-warning text-dark">Weekly: ₱{{ e_loan.current_weekly_interest }}</div>
                 </div>
 
                 <a href="{% url 'pay_principal' e_loan.pk %}" class="btn btn-info btn-sm mt-2">
@@ -202,12 +146,23 @@
 
                         {% if sched.is_paid %}
                             <div class="schedule-box bg-success text-white">
-                                {{ sched.date }} - ₱{{ sched.amount }} ✅
+                                {{ sched.date }} - ₱{{ sched.amount }} <br>
+
+                                {% if sched.paid_at %}
+                                    <strong>Paid on:</strong>
+                                    {{ sched.paid_at|date:"Y-m-d H:i" }}
+                                {% else %}
+                                    <small class="text-warning">No payment timestamp</small>
+                                {% endif %}
+
                             </div>
 
-                        {% elif sched.date < today %}
-                            <div class="schedule-box bg-danger text-white">
-                                {{ sched.date }} - ₱{{ sched.amount }} ❌ Overdue
+                        {% elif sched.paid_amount > 0 %}
+                            <div class="schedule-box bg-info text-white d-flex justify-content-between">
+                                {{ sched.date }} - ₱{{ sched.paid_amount }}/{{ sched.amount }}
+                                <a href="{% url 'mark_emergency_paid' sched.pk %}" class="btn btn-sm btn-light">
+                                    Pay
+                                </a>
                             </div>
 
                         {% else %}
@@ -271,7 +226,11 @@
 
                         {% if sched.is_paid %}
                             <div class="schedule-box bg-success text-white">
-                                {{ sched.date }} - ₱{{ sched.amount }} ✅ Paid
+                                {{ sched.date }} - ₱{{ sched.amount }} <br>
+
+                                {% if sched.paid_at %}
+                                    Paid on {{ sched.paid_at|date:"Y-m-d H:i" }}
+                                {% endif %}
                             </div>
 
                         {% elif sched.paid_amount > 0 %}

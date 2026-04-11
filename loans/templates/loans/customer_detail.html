@@ -57,7 +57,7 @@
 <div class="container mt-3">
 
     <!-- ================= ACTION BAR ================= -->
-    <div class="sticky-actions shadow-sm p-2 mb-3 d-flex flex-wrap gap-2">
+    <div class="sticky-actions shadow-sm p-2 mb-3 d-flex flex-wrap gap-2" style="z-index: 100; ">
 
         <a href="{% url 'add_loan' customer.pk %}" class="btn btn-success action-btn">➕ Loan</a>
         <a href="{% url 'add_emergency_loan' customer.pk %}" class="btn btn-danger action-btn">🚨 Emergency</a>
@@ -211,10 +211,11 @@
             <div class="card-body">
 
                 <div class="row g-2 mb-2">
-                    <div class="col-6">Balance: ₱{{ loan.balance }}</div>
-                    <div class="col-6">Remaining: ₱{{ loan.remaining_balance }}</div>
-                    <div class="col-6">Start: {{ loan.start_date }}</div>
-                    <div class="col-6">Due: {{ loan.due_date }}</div>
+                    <div class="col-6"><strong>Balance:</strong>  ₱{{ loan.balance }}</div>
+                    <div class="col-6"><strong>Remaining:</strong> ₱{{ loan.remaining_balance }}</div>
+                    <div class="col-6"><strong>Start:</strong> {{ loan.start_date }}</div>
+                    <div class="col-6"><strong>Due:</strong> {{ loan.due_date }}</div>
+                    <div class="col-6"><strong>Loan type:</strong> {{ loan.payment_frequency }}</div>
                 </div>
 
                 <h6>Schedule</h6>

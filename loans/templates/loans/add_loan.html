@@ -8,34 +8,27 @@
         {% csrf_token %}
 
         <div class="mb-3">
+            <label>Loan Amount</label>
+            {{ form.loan_amount }}
+        </div>
+
+        <div class="mb-3">
             <label>Payment Frequency</label>
             {{ form.payment_frequency }}
         </div>
 
         <div class="mb-3">
-            <label>Loan Amount</label>
-            {{ form.loan_amount }}
-        </div>
+            <label>Payment per Schedule</label>
+            {{ form.payment_amount }}
 
-        
-
-        <!-- PAYMENT PER SCHEDULE -->
-        <div class="mb-3">
-            <label>Payment per Schedule (Optional)</label>
-            
-            {{ form.payment_amount.as_widget }}
-            <!-- CHECKBOX -->
-            <div class="mb-3">
+            <div class="mt-2">
                 <label>
                     <input type="checkbox" id="autoPaymentToggle">
                     Auto-compute payment per schedule
                 </label>
             </div>
-
-            <small class="text-muted">If filled, system will auto-compute due date</small>
         </div>
 
-        
         <div class="mb-3">
             <label>Interest Type</label>
             {{ form.interest_type }}
@@ -47,7 +40,7 @@
         </div>
 
         <div class="mb-3">
-            <label>Start Date</label>
+            <label>Start Date (Repayment Start)</label>
             {{ form.start_date }}
         </div>
 
@@ -56,14 +49,23 @@
             {{ form.due_date }}
         </div>
 
+        <!-- AUTO DISPLAY ONLY -->
+        {% if loan %}
+        <div class="mb-3">
+            <label>Date Released</label>
+            <input type="text" class="form-control"
+                   value="{{ loan.date_released|date:'Y-m-d H:i' }}"
+                   readonly>
+        </div>
+        {% endif %}
+
         <button type="submit" class="btn btn-success">Add Loan</button>
         <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 
-<!-- JS LOGIC -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     const toggle = document.getElementById("autoPaymentToggle");
     const paymentInput = document.querySelector("input[name='payment_amount']");
     const dueDateInput = document.querySelector("input[name='due_date']");
@@ -74,20 +76,17 @@
 
             dueDateInput.disabled = true;
             dueDateInput.value = "";
-            dueDateInput.style.backgroundColor = "#e9ecef";
         } else {
             paymentInput.disabled = true;
             paymentInput.value = "";
 
             dueDateInput.disabled = false;
-            dueDateInput.style.backgroundColor = "white";
         }
     }
 
     updateState();
     toggle.addEventListener("change", updateState);
 });
-
 </script>
 
 {% endblock %}

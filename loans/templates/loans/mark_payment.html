@@ -1,11 +1,12 @@
 {% extends 'loans/base.html' %}
+{% load custom_filters %}
 
 {% block content %}
 <div class="container mt-4">
     <h4>Payment for {{ payment.loan.customer.full_name }}</h4>
     <p>Scheduled Amount: ₱{{ payment.amount }}</p>
     <p>Already Paid: ₱{{ payment.paid_amount|default:0 }}</p>
-    <p>Remaining: ₱{{ payment.amount|floatformat:2|add:"-payment.paid_amount"|default:payment.amount }}</p>
+    <p>Remaining: ₱{{ payment.amount|subtract:payment.paid_amount|floatformat:2 }}</p>
 
     <form method="post">
         {% csrf_token %}

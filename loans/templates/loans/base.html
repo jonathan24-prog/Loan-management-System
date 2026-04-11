@@ -23,6 +23,7 @@
         body {
             font-family: 'Poppins', sans-serif;
             background: #f5f7fb;
+            overflow-x: hidden;
         }
 
         /* Sidebar */
@@ -36,7 +37,7 @@
             color: #fff;
             padding-top: 20px;
             transition: 0.3s;
-            z-index: 1000;
+            z-index: 1050;
         }
 
         .sidebar a {
@@ -62,6 +63,18 @@
             margin-right: 10px;
         }
 
+        /* Sidebar Header */
+        .sidebar-header {
+            padding: 0 20px;
+        }
+
+        .close-sidebar {
+            font-size: 28px;
+            cursor: pointer;
+            display: none;
+            color: white;
+        }
+
         /* Topbar */
         .topbar {
             margin-left: 240px;
@@ -73,6 +86,9 @@
             padding: 0 20px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
             transition: 0.3s;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .topbar img {
@@ -91,6 +107,22 @@
             margin-left: 240px;
             padding: 20px;
             transition: 0.3s;
+        }
+
+        /* Overlay background for mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            z-index: 1040;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
         }
 
         /* Mobile Responsive */
@@ -114,6 +146,10 @@
             .menu-toggle {
                 display: block;
             }
+
+            .close-sidebar {
+                display: block;
+            }
         }
     </style>
 
@@ -122,9 +158,17 @@
 
 <body>
 
+    <!-- Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
-        <h5 class="text-center mb-4">Admin Panel</h5>
+
+        <!-- Sidebar Header -->
+        <div class="sidebar-header d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0">Admin Panel</h5>
+            <i class='bx bx-x close-sidebar' id="close-sidebar"></i>
+        </div>
 
         <a href="{% url 'dashboard' %}" class="active">
             <i class='bx bx-grid-alt'></i> Dashboard
@@ -150,7 +194,7 @@
         <img src="https://i.pravatar.cc/100" alt="">
     </div>
 
-    <!-- Content -->
+    <!-- Main Content -->
     <div class="main-content">
         {% block content %}
         {% endblock %}
@@ -160,9 +204,25 @@
     <script>
         const toggle = document.getElementById('menu-toggle');
         const sidebar = document.getElementById('sidebar');
+        const closeSidebar = document.getElementById('close-sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
 
+        // Open sidebar
         toggle.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+        });
+
+        // Close sidebar button
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        // Close when clicking overlay
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
         });
     </script>
 

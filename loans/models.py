@@ -2,6 +2,8 @@ from django.db import models
 from decimal import Decimal
 from datetime import date
 
+# 2026-06-20 06:15:55.758321
+
 # ================= Customer =================
 class Customer(models.Model):
     full_name = models.CharField(max_length=200)
@@ -14,6 +16,9 @@ class Customer(models.Model):
     def __str__(self):
         return self.full_name
 
+
+from django.db import models
+from django.utils import timezone
 # ================= Loan =================
 class Loan(models.Model):
     INTEREST_TYPE_CHOICES = [
@@ -28,13 +33,33 @@ class Loan(models.Model):
         ('monthly', 'Monthly'),
     ]
 
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='loans')
-    loan_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    interest_type = models.CharField(max_length=10, choices=INTEREST_TYPE_CHOICES, default='percent')
-    interest_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    payment_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    customer = models.ForeignKey(
+        'Customer',
+        on_delete=models.CASCADE,
+        related_name='loans'
+    )
 
-    # ✅ NEW FIELD
+    loan_amount = models.DecimalField(max_digits=10, decimal_places=2)
+
+    interest_type = models.CharField(
+        max_length=10,
+        choices=INTEREST_TYPE_CHOICES,
+        default='percent'
+    )
+
+    interest_value = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    payment_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+
     payment_frequency = models.CharField(
         max_length=15,
         choices=PAYMENT_FREQUENCY_CHOICES,
@@ -43,14 +68,22 @@ class Loan(models.Model):
 
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     remaining_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    # 🟢 USER INPUT (when repayment starts)
     start_date = models.DateField()
+
+    # 🔵 AUTO (when loan is created / money released)
+    date_released = models.DateTimeField(default=timezone.now, editable=False)
+
     due_date = models.DateField(null=True, blank=True)
-    
 
     def save(self, *args, **kwargs):
         if not self.pk:
+            # compute total loan balance on creation
             if self.interest_type == 'percent':
-                self.balance = self.loan_amount + (self.loan_amount * self.interest_value / 100)
+                self.balance = self.loan_amount + (
+                    self.loan_amount * self.interest_value / 100
+                )
             else:
                 self.balance = self.loan_amount + self.interest_value
 

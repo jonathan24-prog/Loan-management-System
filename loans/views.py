@@ -48,48 +48,103 @@ def logout_view(request):
 def dashboard(request):
     today = date.today()
     filter_type = request.GET.get('filter', 'month')
+    payments = PaymentSchedule.objects.filter(
+    is_paid=True,
+    paid_at__isnull=False
+)
 
     # DATE FILTER
     if filter_type == 'day':
-        payments = PaymentSchedule.objects.filter(date=today)
+        payments = payments.filter(paid_at__date=today)
 
     elif filter_type == 'week':
         start_week = today - timedelta(days=today.weekday())
-        payments = PaymentSchedule.objects.filter(date__gte=start_week)
+        payments = payments.filter(paid_at__date__gte=start_week)
 
     elif filter_type == 'year':
-        payments = PaymentSchedule.objects.filter(date__year=today.year)
+        payments = payments.filter(paid_at__year=today.year)
 
     else:
-        payments = PaymentSchedule.objects.filter(
-            date__year=today.year,
-            date__month=today.month
+        payments = payments.filter(
+            paid_at__year=today.year,
+            paid_at__month=today.month
         )
 
     payments = payments.filter(is_paid=True)
 
     # TOTAL COLLECTION
     total_collection = payments.aggregate(total=Sum('amount'))['total'] or 0
+    
+    emergency_collection = EmergencyPaymentSchedule.objects.filter(
+        is_paid=True
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    total_collection = total_collection + emergency_collection
 
     # TOTAL RELEASED
     if filter_type == 'day':
-        loans = Loan.objects.filter(start_date=today)
+        loans = Loan.objects.filter(date_released__date=today)
+
     elif filter_type == 'week':
-        loans = Loan.objects.filter(start_date__gte=start_week)
-    elif filter_type == 'year':
-        loans = Loan.objects.filter(start_date__year=today.year)
-    else:
+        start_week = today - timedelta(days=today.weekday())
+        end_week = start_week + timedelta(days=6)
+
         loans = Loan.objects.filter(
-            start_date__year=today.year,
-            start_date__month=today.month
+            date_released__date__gte=start_week,
+            date_released__date__lte=end_week
         )
 
-    total_released = loans.aggregate(total=Sum('loan_amount'))['total'] or 0
+    elif filter_type == 'month':   # ✅ EXPLICIT MONTH FILTER
+        loans = Loan.objects.filter(
+            date_released__year=today.year,
+            date_released__month=today.month
+        )
+
+    elif filter_type == 'year':
+        loans = Loan.objects.filter(date_released__year=today.year)
+
+    else:
+        # default = current month
+        loans = Loan.objects.filter(
+            date_released__year=today.year,
+            date_released__month=today.month
+        )
+
+
+    emergency_released = EmergencyLoan.objects.all().aggregate(
+        total=Sum('loan_amount')
+    )['total'] or 0
+
+    total_released = (loans.aggregate(total=Sum('loan_amount'))['total'] or 0) + emergency_released
 
     # TOTAL INTEREST
-    total_interest_collected = total_collection - total_released
-    if total_interest_collected < 0:
-        total_interest_collected = 0
+    regular_paid = PaymentSchedule.objects.filter(
+        is_paid=True
+    ).aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    regular_released = Loan.objects.aggregate(
+        total=Sum('loan_amount')
+    )['total'] or 0
+
+    regular_interest = regular_paid - regular_released
+
+    if regular_interest < 0:
+        regular_interest = 0
+
+
+    # ---------------- EMERGENCY LOANS ----------------
+    emergency_interest = EmergencyPaymentSchedule.objects.filter(
+        is_paid=True,
+        payment_type='interest'
+    ).aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+
+    # ---------------- FINAL TOTAL ----------------
+    total_interest_collected = regular_interest + emergency_interest
 
     # STATS
     total_customers = Customer.objects.count()
@@ -98,7 +153,13 @@ def dashboard(request):
     ).distinct().count()
 
     total_loans = Loan.objects.count()
-    ongoing_loans = Loan.objects.filter(remaining_balance__gt=0).count()
+
+
+    regular_ongoing = Loan.objects.filter(remaining_balance__gt=0).count()
+    emergency_ongoing = EmergencyLoan.objects.filter(remaining_principal__gt=0).count()
+
+    ongoing_loans = regular_ongoing + emergency_ongoing
+    
     paid_loans = Loan.objects.filter(remaining_balance=0).count()
 
     overdue_payments = PaymentSchedule.objects.filter(
@@ -298,6 +359,7 @@ from dateutil.relativedelta import relativedelta  # install if needed
 from math import ceil
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+import calendar
 
 def add_loan(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
@@ -384,7 +446,7 @@ def add_loan(request, pk):
                         ))
 
                 elif loan.payment_frequency == 'semi_monthly':
-                    import calendar
+                    
 
                     dates = []
                     temp_date = current_date
@@ -447,7 +509,8 @@ def add_loan(request, pk):
 
     return render(request, 'loans/add_loan.html', {
         'form': form,
-        'customer': customer
+        'customer': customer,
+     
     })
     
 def reloan(request, pk):

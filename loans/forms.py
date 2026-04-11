@@ -22,7 +22,15 @@ from .models import Loan
 from django import forms
 from .models import Loan
 
+from django import forms
+from .models import Loan
+
+from django import forms
+from .models import Loan
+
+
 class LoanForm(forms.ModelForm):
+
     INTEREST_TYPE_CHOICES = [
         ('percent', 'Percentage (%)'),
         ('amount', 'Fixed Amount'),
@@ -33,7 +41,6 @@ class LoanForm(forms.ModelForm):
         ('weekly', 'Weekly'),
         ('semi_monthly', 'Semi_monthly'),
         ('monthly', 'Monthly'),
-        
     ]
 
     interest_type = forms.ChoiceField(
@@ -49,7 +56,6 @@ class LoanForm(forms.ModelForm):
         label='Interest'
     )
 
-    # ✅ NEW FIELD
     payment_frequency = forms.ChoiceField(
         choices=PAYMENT_FREQUENCY_CHOICES,
         widget=forms.Select(attrs={'class': 'form-select'}),
@@ -71,30 +77,31 @@ class LoanForm(forms.ModelForm):
             'interest_type',
             'interest_value',
             'payment_frequency',
-            'payment_amount',  # ✅ NEW
-            'start_date',
+            'payment_amount',
+            'start_date',   # 🟢 kept
             'due_date'
         ]
+
         widgets = {
             'loan_amount': forms.NumberInput(attrs={'class': 'form-control'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'due_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
 
-
     def clean(self):
         cleaned_data = super().clean()
         payment_amount = cleaned_data.get('payment_amount')
         due_date = cleaned_data.get('due_date')
 
-        # detect auto mode (payment_amount exists)
+        # AUTO MODE
         if payment_amount and payment_amount > 0:
-            # auto mode → due date NOT required
             return cleaned_data
 
-        # manual mode → due date required
+        # MANUAL MODE
         if not due_date:
-            raise forms.ValidationError("Due Date is required when Payment Amount is not set.")
+            raise forms.ValidationError(
+                "Due Date is required when Payment Amount is not set."
+            )
 
         return cleaned_data
 

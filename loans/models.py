@@ -44,7 +44,7 @@ class Loan(models.Model):
     balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     remaining_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     start_date = models.DateField()
-    due_date = models.DateField()
+    due_date = models.DateField(null=True, blank=True)
     
 
     def save(self, *args, **kwargs):

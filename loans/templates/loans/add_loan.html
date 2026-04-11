@@ -53,7 +53,7 @@
 
         <div class="mb-3">
             <label>Due Date</label>
-            {{ form.due_date.as_widget }}
+            {{ form.due_date }}
         </div>
 
         <button type="submit" class="btn btn-success">Add Loan</button>
@@ -64,25 +64,29 @@
 <!-- JS LOGIC -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const toggle = document.getElementById("autoPaymentToggle");
-        const paymentInput = document.querySelector("input[name='payment_amount']");
+    const toggle = document.getElementById("autoPaymentToggle");
+    const paymentInput = document.querySelector("input[name='payment_amount']");
+    const dueDateInput = document.querySelector("input[name='due_date']");
 
-        function updateState() {
-            if (toggle.checked) {
-                paymentInput.disabled = false;
-                paymentInput.style.backgroundColor = "white";
-            } else {
-                paymentInput.disabled = true;
-                paymentInput.value = "";
-                paymentInput.style.backgroundColor = "#e9ecef";
-            }
+    function updateState() {
+        if (toggle.checked) {
+            paymentInput.disabled = false;
+
+            dueDateInput.disabled = true;
+            dueDateInput.value = "";
+            dueDateInput.style.backgroundColor = "#e9ecef";
+        } else {
+            paymentInput.disabled = true;
+            paymentInput.value = "";
+
+            dueDateInput.disabled = false;
+            dueDateInput.style.backgroundColor = "white";
         }
- // run once on page load
-        updateState();
+    }
 
-        // run when checkbox changes
-        toggle.addEventListener("change", updateState);
-    });
+    updateState();
+    toggle.addEventListener("change", updateState);
+});
 
 </script>
 

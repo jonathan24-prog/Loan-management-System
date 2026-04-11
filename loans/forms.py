@@ -87,8 +87,14 @@ class LoanForm(forms.ModelForm):
         payment_amount = cleaned_data.get('payment_amount')
         due_date = cleaned_data.get('due_date')
 
-        if not payment_amount and not due_date:
-            raise forms.ValidationError("Provide either Due Date OR Payment Amount.")
+        # detect auto mode (payment_amount exists)
+        if payment_amount and payment_amount > 0:
+            # auto mode → due date NOT required
+            return cleaned_data
+
+        # manual mode → due date required
+        if not due_date:
+            raise forms.ValidationError("Due Date is required when Payment Amount is not set.")
 
         return cleaned_data
 

@@ -51,7 +51,7 @@ def dashboard(request):
     payments = PaymentSchedule.objects.filter(
     is_paid=True,
     paid_at__isnull=False
-)
+    )
 
     # DATE FILTER
     if filter_type == 'day':
@@ -159,7 +159,7 @@ def dashboard(request):
     emergency_ongoing = EmergencyLoan.objects.filter(remaining_principal__gt=0).count()
 
     ongoing_loans = regular_ongoing + emergency_ongoing
-    
+
     paid_loans = Loan.objects.filter(remaining_balance=0).count()
 
     overdue_payments = PaymentSchedule.objects.filter(

@@ -2,7 +2,7 @@ from django.db import models
 from decimal import Decimal
 from datetime import date
 
-# 2026-06-20 06:15:55.758321
+# 2026-04-11 06:15:55.758321
 
 # ================= Customer =================
 class Customer(models.Model):
@@ -11,7 +11,13 @@ class Customer(models.Model):
 
     @property
     def is_active(self):
-        return self.loans.filter(remaining_balance__gt=0).exists()
+        has_regular = self.loans.filter(remaining_balance__gt=0).exists()
+
+        has_emergency = self.emergency_loans.filter(
+            remaining_principal__gt=0
+        ).exists()
+
+        return has_regular or has_emergency
         
     def __str__(self):
         return self.full_name

@@ -77,11 +77,15 @@
                                class="btn btn-sm btn-success action-btn">
                                 Add Loan
                             </a>
+                            <a href="{% url 'add_emergency_loan' customer.pk %}" 
+                               class="btn btn-sm btn-warning action-btn">
+                                Add Emergency Loan
+                            </a>
 
-                            <a href="{% url 'reloan' customer.pk %}" 
+                            <!-- <a href="{% url 'reloan' customer.pk %}" 
                                class="btn btn-sm btn-warning action-btn">
                                 Reloan
-                            </a>
+                            </a> -->
 
                             <button type="button" class="btn btn-sm btn-danger action-btn"
                                     data-bs-toggle="modal"

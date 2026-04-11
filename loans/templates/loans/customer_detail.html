@@ -59,9 +59,9 @@
     <!-- ================= ACTION BAR ================= -->
     <div class="sticky-actions shadow-sm p-2 mb-3 d-flex flex-wrap gap-2" style="z-index: 100; ">
 
-        <a href="{% url 'add_loan' customer.pk %}" class="btn btn-success action-btn">➕ Loan</a>
-        <a href="{% url 'add_emergency_loan' customer.pk %}" class="btn btn-danger action-btn">🚨 Emergency</a>
-        <a href="{% url 'reloan' customer.pk %}" class="btn btn-warning action-btn">🔄 Reloan</a>
+        <a href="{% url 'add_loan' customer.pk %}" class="btn btn-success action-btn">➕ Add Loan</a>
+        <a href="{% url 'add_emergency_loan' customer.pk %}" class="btn btn-danger action-btn">🚨 add Emergency Loan</a>
+        <!-- <a href="{% url 'reloan' customer.pk %}" class="btn btn-warning action-btn">🔄 Reloan</a> -->
         <a href="{% url 'customers' %}" class="btn btn-secondary action-btn">⬅ Back</a>
 
     </div>

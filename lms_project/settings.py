@@ -56,25 +56,24 @@ WSGI_APPLICATION = 'lms_project.wsgi.application'
 
 # Use external PostgreSQL (Supabase/ElephantSQL)
 
+DATABASES = {
+    "default": dj_database_url.parse(
+        os.environ.get(
+            "DATABASE_URL",
+            "postgresql://lms_db_uk3v_user:njTe4hdgPZw3VJb2Ycd4k15ffbFkxF1h@dpg-d6tusi94tr6s73bthbjg-a.oregon-postgres.render.com/lms_db_uk3v"  # replace with your free DB URL if not using env
+           
+        ),
+        conn_max_age=600,
+        ssl_require=True
+    )
+}
 
 # DATABASES = {
-#     "default": dj_database_url.parse(
-#         os.environ.get(
-#             "DATABASE_URL",
-#             "postgresql://lms_db_uk3v_user:njTe4hdgPZw3VJb2Ycd4k15ffbFkxF1h@dpg-d6tusi94tr6s73bthbjg-a.oregon-postgres.render.com/lms_db_uk3v"  # replace with your free DB URL if not using env
-           
-#         ),
-#         conn_max_age=600,
-#         ssl_require=True
-#     )
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
 # }
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
 
 # ---------- PASSWORD VALIDATION ----------
@@ -87,7 +86,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # ---------- INTERNATIONALIZATION ----------
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+USE_TZ = True
+TIME_ZONE = 'Asia/Manila'
 USE_I18N = True
 USE_TZ = True
 

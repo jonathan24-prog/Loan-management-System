@@ -149,7 +149,7 @@
                                 {{ sched.date }} - ₱{{ sched.amount }} <br>
 
                                 {% if sched.paid_at %}
-                                    <strong>Paid on:</strong>
+                                    <strong class="text-warning">Paid on:</strong>
                                     {{ sched.paid_at|date:"Y-m-d H:i" }}
                                 {% else %}
                                     <small class="text-warning">No payment timestamp</small>
@@ -229,7 +229,7 @@
                                 {{ sched.date }} - ₱{{ sched.amount }} <br>
 
                                 {% if sched.paid_at %}
-                                    Paid on {{ sched.paid_at|date:"Y-m-d H:i" }}
+                                    <strong class="text-warning">Paid on</strong> {{ sched.paid_at|date:"Y-m-d H:i" }}
                                 {% endif %}
                             </div>
 

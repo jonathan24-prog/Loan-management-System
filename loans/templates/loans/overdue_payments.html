@@ -1,0 +1,41 @@
+{% extends 'loans/base.html' %}
+
+{% block content %}
+
+<div class="container mt-3">
+
+    <h4 class="fw-bold mb-3">Overdue Payments</h4>
+
+    {% for sched in overdue_schedules %}
+    <div class="card mb-2 p-3 shadow-sm">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+                <strong>{{ sched.loan.customer.full_name }}</strong><br>
+                <small class="text-muted">
+                    Due: {{ sched.date }} | ₱{{ sched.amount }}
+                </small>
+            </div>
+
+            <a href="{% url 'customer_detail' sched.loan.customer.pk %}"
+               class="btn btn-primary btn-sm">
+                View
+            </a>
+
+        </div>
+
+        <div class="mt-2 text-danger">
+            Loan: ₱{{ sched.loan.loan_amount }} |
+            Remaining: ₱{{ sched.loan.remaining_balance }}
+        </div>
+
+    </div>
+
+    {% empty %}
+        <p class="text-muted">No overdue payments 🎉</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

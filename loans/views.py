@@ -14,13 +14,15 @@ from .models import (
     Loan,
     PaymentSchedule,
     EmergencyLoan,
-    EmergencyPaymentSchedule
+    EmergencyPaymentSchedule,
+    OldLoan, OldLoanPayment
 )
 from .forms import (
     CustomerForm,
     LoanForm,
     EmergencyLoanForm,
-    PrincipalPaymentForm
+    PrincipalPaymentForm,
+    OldLoanForm
 )
 
 
@@ -162,10 +164,12 @@ def dashboard(request):
 
     paid_loans = Loan.objects.filter(remaining_balance=0).count()
 
-    overdue_payments = PaymentSchedule.objects.filter(
+    overdue_payments_qs = PaymentSchedule.objects.filter(
         is_paid=False,
         date__lt=today
-    ).count()
+    ).select_related('loan', 'loan__customer')
+
+    overdue_payments = overdue_payments_qs.count()
 
     # CHART GROUPING
     if filter_type == 'year':
@@ -193,6 +197,7 @@ def dashboard(request):
         'ongoing_loans': ongoing_loans,
         'paid_loans': paid_loans,
         'overdue_payments': overdue_payments,
+        'overdue_payments_qs': overdue_payments_qs,
 
         'total_collection': total_collection,
         'total_released': total_released,
@@ -205,6 +210,18 @@ def dashboard(request):
 
     return render(request, 'loans/dashboard.html', context)
 
+
+def overdue_payments_view(request):
+    today = date.today()
+
+    overdue_schedules = PaymentSchedule.objects.filter(
+        is_paid=False,
+        date__lt=today
+    ).select_related('loan', 'loan__customer').order_by('date')
+
+    return render(request, 'loans/overdue_payments.html', {
+        'overdue_schedules': overdue_schedules
+    })
 
 # ================= CUSTOMERS =================
 def customers(request):
@@ -296,6 +313,21 @@ def customer_detail(request, pk):
     total_collection = 0
     total_released = 0
 
+    # ================= PRINCIPAL ONLY CALCULATION =================
+
+    total_principal_released = 0
+    total_principal_paid = 0
+
+    for loan in loans:
+        total_principal_released += loan.loan_amount
+        total_principal_paid += (loan.loan_amount - loan.remaining_balance)
+
+    for e_loan in emergency_loans:
+        total_principal_released += e_loan.loan_amount
+        total_principal_paid += (e_loan.loan_amount - e_loan.remaining_principal)
+
+    customer_hold = total_principal_released - total_principal_paid
+
     for loan in loans:
         if loan.start_date and loan.due_date:
             loan.total_days = (loan.due_date - loan.start_date).days + 1
@@ -347,6 +379,9 @@ def customer_detail(request, pk):
         'total_interest_collected': total_interest_collected,
         'total_collection': total_collection,
         'total_released': total_released,
+        'customer_hold': customer_hold,
+        'total_principal_released': total_principal_released,
+        'total_principal_paid': total_principal_paid,
     }
 
     return render(request, 'loans/customer_detail.html', context)
@@ -512,7 +547,76 @@ def add_loan(request, pk):
         'customer': customer,
      
     })
-    
+
+       
+def add_old_loan(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+
+    if request.method == "POST":
+        form = OldLoanForm(request.POST)
+        if form.is_valid():
+            loan = form.save(commit=False)
+            loan.customer = customer
+            loan.save()
+            return redirect('customer_detail', pk=customer.pk)
+    else:
+        form = OldLoanForm()
+
+    return render(request, 'loans/add_old_loan.html', {
+        'form': form,
+        'customer': customer
+    })
+
+
+def pay_old_loan(request, pk):
+    loan = get_object_or_404(OldLoan, pk=pk)
+
+    if request.method == "POST":
+
+        # ❌ BLOCK IF ALREADY PAID
+        if loan.remaining_balance <= 0:
+            messages.error(request, "This loan is already fully paid.")
+            return redirect('customer_detail', pk=loan.customer.pk)
+
+        try:
+            amount = Decimal(request.POST.get("amount", 0))
+        except:
+            messages.error(request, "Invalid amount.")
+            return redirect('customer_detail', pk=loan.customer.pk)
+
+        # ❌ BLOCK ZERO OR NEGATIVE
+        if amount <= 0:
+            messages.error(request, "Amount must be greater than zero.")
+            return redirect('customer_detail', pk=loan.customer.pk)
+
+        # ❌ BLOCK OVERPAYMENT
+        if amount > loan.remaining_balance:
+            messages.error(
+                request,
+                f"Cannot pay ₱{amount}. Only ₱{loan.remaining_balance} remaining."
+            )
+            return redirect('customer_detail', pk=loan.customer.pk)
+
+        # ✅ CREATE PAYMENT
+        OldLoanPayment.objects.create(
+            old_loan=loan,
+            amount=amount
+        )
+
+        # ✅ UPDATE BALANCE
+        loan.remaining_balance -= amount
+
+        if loan.remaining_balance < 0:
+            loan.remaining_balance = 0
+
+        loan.save()
+
+        messages.success(request, f"Payment of ₱{amount} saved.")
+
+        return redirect('customer_detail', pk=loan.customer.pk)
+
+    return render(request, 'loans/pay_old_loan.html', {'loan': loan})
+
 def reloan(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
 

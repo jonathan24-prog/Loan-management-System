@@ -74,11 +74,13 @@
         </div>
 
         <div class="col-6 col-md-3">
-            <div class="card app-card p-3 text-white"
-                 style="background: linear-gradient(135deg,#e74c3c,#ec7063);">
-                <div class="app-title">Overdue Payments</div>
-                <div class="app-value">{{ overdue_payments }}</div>
-            </div>
+            <a href="{% url 'overdue_payments' %}" style="text-decoration:none;">
+                <div class="card app-card p-3 text-white"
+                    style="background: linear-gradient(135deg,#e74c3c,#ec7063); cursor:pointer;">
+                    <div class="app-title">Overdue Payments</div>
+                    <div class="app-value">{{ overdue_payments }}</div>
+                </div>
+            </a>
         </div>
 
     </div>

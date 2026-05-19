@@ -77,6 +77,10 @@
                                class="btn btn-sm btn-success action-btn">
                                 Add Loan
                             </a>
+                            <a href="{% url 'add_old_loan' customer.pk %}" 
+                                class="btn btn-sm btn-dark action-btn">
+                                Add Old Loan
+                            </a>
                             <a href="{% url 'add_emergency_loan' customer.pk %}" 
                                class="btn btn-sm btn-warning action-btn">
                                 Add Emergency Loan

@@ -98,6 +98,26 @@ class Loan(models.Model):
         super().save(*args, **kwargs)
 
 
+class OldLoan(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='old_loans')
+    
+    loan_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    remaining_balance = models.DecimalField(max_digits=12, decimal_places=2)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Old Loan - {self.customer.full_name}"
+
+
+class OldLoanPayment(models.Model):
+    old_loan = models.ForeignKey(OldLoan, on_delete=models.CASCADE, related_name='payments')
+    
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    paid_at = models.DateTimeField(auto_now_add=True)
+
+
+
 # ================= Payment Schedule =================
 from django.db import models
 from django.utils import timezone

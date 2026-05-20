@@ -61,7 +61,8 @@ DATABASES = {
         os.environ.get(
             "DATABASE_URL",
             # "postgresql://lms_db_uk3v_user:njTe4hdgPZw3VJb2Ycd4k15ffbFkxF1h@dpg-d6tusi94tr6s73bthbjg-a.oregon-postgres.render.com/lms_db_uk3v"  # replace with your free DB URL if not using env
-            "postgresql://lms_db_31bg_user:VIVOhbj2X4XZhETWrWmktMVw449Y47HP@dpg-d7icmc9f9bms73832h10-a.oregon-postgres.render.com/lms_db_31bg"
+            
+            "postgresql://lms_user:hhF7CCI0GIq9C9lwENcJX4cVpm85soMV@dpg-d86ri73bc2fs73bakimg-a.oregon-postgres.render.com/lms_db_dtu6"
         ),
         conn_max_age=600,
         ssl_require=True

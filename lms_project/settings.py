@@ -54,20 +54,36 @@ WSGI_APPLICATION = 'lms_project.wsgi.application'
 
 # ---------- DATABASE ----------
 
-# Use external PostgreSQL (Supabase/ElephantSQL)
+# render storage
+
+# DATABASES = {
+#     "default": dj_database_url.parse(
+#         os.environ.get(
+#             "DATABASE_URL",
+#             # "postgresql://lms_db_uk3v_user:njTe4hdgPZw3VJb2Ycd4k15ffbFkxF1h@dpg-d6tusi94tr6s73bthbjg-a.oregon-postgres.render.com/lms_db_uk3v"  # replace with your free DB URL if not using env
+            
+#             "postgresql://lms_user:hhF7CCI0GIq9C9lwENcJX4cVpm85soMV@dpg-d86ri73bc2fs73bakimg-a.oregon-postgres.render.com/lms_db_dtu6"
+#         ),
+#         conn_max_age=600,
+#         ssl_require=True
+#     )
+# }
+
+
+# digital ocean storage
 
 DATABASES = {
-    "default": dj_database_url.parse(
-        os.environ.get(
-            "DATABASE_URL",
-            # "postgresql://lms_db_uk3v_user:njTe4hdgPZw3VJb2Ycd4k15ffbFkxF1h@dpg-d6tusi94tr6s73bthbjg-a.oregon-postgres.render.com/lms_db_uk3v"  # replace with your free DB URL if not using env
-            
-            "postgresql://lms_user:hhF7CCI0GIq9C9lwENcJX4cVpm85soMV@dpg-d86ri73bc2fs73bakimg-a.oregon-postgres.render.com/lms_db_dtu6"
-        ),
-        conn_max_age=600,
-        ssl_require=True
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'lms_db',
+        'USER': 'lms_user',
+        'PASSWORD': 'admin123',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
+
+# local storage
 
 # DATABASES = {
 #     'default': {

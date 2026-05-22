@@ -106,6 +106,23 @@ class LoanForm(forms.ModelForm):
         return cleaned_data
 
 
+
+from django import forms
+from .models import OtherLoanPayment
+
+
+class OtherLoanPaymentForm(forms.ModelForm):
+    class Meta:
+        model = OtherLoanPayment
+        fields = ['amount']
+
+        widgets = {
+            'amount': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter payment amount'
+            })
+        }
+
         
 
 from django import forms
@@ -162,18 +179,10 @@ class PrincipalPaymentForm(forms.ModelForm):
         }
 
 from django import forms
-from .models import PaymentSchedule, OldLoan
+from .models import PaymentSchedule
 
 class PaymentForm(forms.ModelForm):
     class Meta:
         model = PaymentSchedule
         fields = ['paid_amount']
 
-class OldLoanForm(forms.ModelForm):
-    class Meta:
-        model = OldLoan
-        fields = ['loan_amount', 'remaining_balance']
-        widgets = {
-            'loan_amount': forms.NumberInput(attrs={'class': 'form-control'}),
-            'remaining_balance': forms.NumberInput(attrs={'class': 'form-control'}),
-        }

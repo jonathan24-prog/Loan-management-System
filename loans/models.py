@@ -98,23 +98,58 @@ class Loan(models.Model):
         super().save(*args, **kwargs)
 
 
-class OldLoan(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='old_loans')
-    
+from django.db import models
+from decimal import Decimal
+from django.utils import timezone
+
+
+class OtherLoan(models.Model):
+    full_name = models.CharField(max_length=200)
+    contact_number = models.CharField(max_length=20, blank=True, null=True)
+
     loan_amount = models.DecimalField(max_digits=12, decimal_places=2)
     remaining_balance = models.DecimalField(max_digits=12, decimal_places=2)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def is_active(self):
+        return self.remaining_balance > 0
 
     def __str__(self):
-        return f"Old Loan - {self.customer.full_name}"
+        return self.full_name
+
+    def total_paid(self):
+        return sum(p.amount for p in self.payments.all())
+
+from django.db import models
+from django.utils import timezone
 
 
-class OldLoanPayment(models.Model):
-    old_loan = models.ForeignKey(OldLoan, on_delete=models.CASCADE, related_name='payments')
-    
+class OtherLoanPayment(models.Model):
+    other_loan = models.ForeignKey(
+        'OtherLoan',
+        on_delete=models.CASCADE,
+        related_name='payments'
+    )
+
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    paid_at = models.DateTimeField(auto_now_add=True)
+    date = models.DateField(default=timezone.now)
+
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # update remaining balance automatically
+        loan = self.other_loan
+        loan.remaining_balance -= self.amount
+        if loan.remaining_balance < 0:
+            loan.remaining_balance = 0
+        loan.save()
+
+
+
+
 
 
 

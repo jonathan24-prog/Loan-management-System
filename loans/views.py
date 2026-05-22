@@ -15,14 +15,14 @@ from .models import (
     PaymentSchedule,
     EmergencyLoan,
     EmergencyPaymentSchedule,
-    OldLoan, OldLoanPayment
+   
 )
 from .forms import (
     CustomerForm,
     LoanForm,
     EmergencyLoanForm,
     PrincipalPaymentForm,
-    OldLoanForm
+  
 )
 
 
@@ -224,17 +224,49 @@ def overdue_payments_view(request):
     })
 
 # ================= CUSTOMERS =================
+
+from .models import OtherLoan
+# ================= CUSTOMERS =================
 def customers(request):
     query = request.GET.get('q')
-    today = date.today()
+    loan_filter = request.GET.get('loan_type', 'all')
+    other_loans = OtherLoan.objects.all()
 
-    customers = Customer.objects.all().prefetch_related('loans__schedules', 'emergency_loans__schedules')
+    customers = Customer.objects.all().prefetch_related(
+        'loans__schedules',
+        'emergency_loans__schedules'
+    )
 
+    # ================= SEARCH =================
     if query:
         customers = customers.filter(
             Q(full_name__icontains=query) |
             Q(contact_number__icontains=query)
         )
+
+    # ================= LOAN CATEGORY FILTER =================
+
+    # DAILY LOANS
+    if loan_filter == 'daily':
+        customers = customers.filter(
+            loans__payment_frequency='daily'
+        ).distinct()
+
+    # WEEKLY LOANS
+    elif loan_filter == 'weekly':
+        customers = customers.filter(
+            loans__payment_frequency='weekly'
+        ).distinct()
+
+    # OTHER LOANS (monthly + semi_monthly)
+    # elif loan_filter == 'others':
+    #     customers = customers.filter(
+    #         old_loans__remaining_balance__gt=0
+    #     ).distinct()
+
+    # 'all' = no filter
+
+    # ========================================================
 
     total_customers = customers.count()
 
@@ -242,41 +274,70 @@ def customers(request):
         loans__remaining_balance__gt=0
     ).distinct().count()
 
-    # -------------------- TODAY'S STATUS --------------------
+    # ================= TODAY STATUS =================
     for customer in customers:
         today = date.today()
-        customer.today_status = "Unpaid"  # default
+        customer.today_status = "Unpaid"
 
-        # Regular loan schedules for today
+        # Regular schedules today
         regular_schedules_today = PaymentSchedule.objects.filter(
             loan__customer=customer,
             date=today
         )
 
-        # Emergency loan schedules for today
+        # Emergency schedules today
         emergency_schedules_today = EmergencyPaymentSchedule.objects.filter(
             emergency_loan__customer=customer,
             date=today
         )
 
-        # Combine all schedules
-        all_schedules_today = list(regular_schedules_today) + list(emergency_schedules_today)
+        # Combine schedules
+        all_schedules_today = (
+            list(regular_schedules_today) +
+            list(emergency_schedules_today)
+        )
 
-        if all_schedules_today:  # If customer has schedules today
-            # Check if **all** are paid
+        if all_schedules_today:
+
+            # If ALL schedules are paid
             if all(s.is_paid for s in all_schedules_today):
                 customer.today_status = "Paid"
+
             else:
                 customer.today_status = "Unpaid"
-        else:
-            customer.today_status = "no schedule"  # No schedules today
-    # ---------------------------------------------------------
 
+        else:
+            customer.today_status = "no schedule"
+
+    # ========================================================
+
+    # ADD CUSTOMER
     if request.method == "POST":
+
+
+
         form = CustomerForm(request.POST)
+
+
+        if request.method == "POST" and 'loan_amount' in request.POST:
+            full_name = request.POST.get('full_name')
+            contact_number = request.POST.get('contact_number')
+            loan_amount = request.POST.get('loan_amount')
+            remaining_balance = request.POST.get('remaining_balance')
+
+            OtherLoan.objects.create(
+                full_name=full_name,
+                contact_number=contact_number,
+                loan_amount=loan_amount,
+                remaining_balance=remaining_balance
+            )
+
+            return redirect('customers')
+
         if form.is_valid():
             form.save()
             return redirect('customers')
+
     else:
         form = CustomerForm()
 
@@ -284,13 +345,73 @@ def customers(request):
         'form': form,
         'customers': customers,
         'total_customers': total_customers,
+        'other_loans': other_loans,
         'active_customers': active_customers,
+        'loan_filter': loan_filter,
     }
 
     return render(request, 'loans/customers.html', context)
 
+from .models import OtherLoan
+from django.shortcuts import get_object_or_404, redirect
+
+def other_loan_delete(request, pk):
+    loan = get_object_or_404(OtherLoan, pk=pk)
+
+    if request.method == "POST":
+        loan.delete()
+        return redirect('customers')
+
+
+from .models import OtherLoan, OtherLoanPayment
+from .forms import OtherLoanPaymentForm
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+
+def pay_other_loan(request, pk):
+    loan = get_object_or_404(OtherLoan, pk=pk)
+
+    if request.method == "POST":
+        form = OtherLoanPaymentForm(request.POST)
+
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.other_loan = loan
+            payment.paid_at = timezone.now()
+            payment.save()
+
+            return redirect('customers')
+
+    else:
+        form = OtherLoanPaymentForm()
+
+    return render(request, 'loans/pay_other_loan.html', {
+        'form': form,
+        'loan': loan
+    })
+
+from .models import OtherLoan
+from django.db.models import Sum
+
+def other_loan_detail(request, pk):
+    loan = get_object_or_404(OtherLoan, pk=pk)
+
+    payments = loan.payments.all().order_by('-date')
+
+    total_paid = payments.aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+
+    return render(request, 'loans/other_loan_detail.html', {
+        'loan': loan,
+        'payments': payments,
+        'total_paid': total_paid,
+    })
 
 def customer_delete(request, pk):
+
+    
     customer = get_object_or_404(Customer, pk=pk)
 
     if request.method == "POST":
@@ -549,73 +670,17 @@ def add_loan(request, pk):
     })
 
        
-def add_old_loan(request, pk):
-    customer = get_object_or_404(Customer, pk=pk)
-
-    if request.method == "POST":
-        form = OldLoanForm(request.POST)
-        if form.is_valid():
-            loan = form.save(commit=False)
-            loan.customer = customer
-            loan.save()
-            return redirect('customer_detail', pk=customer.pk)
-    else:
-        form = OldLoanForm()
-
-    return render(request, 'loans/add_old_loan.html', {
-        'form': form,
-        'customer': customer
-    })
 
 
-def pay_old_loan(request, pk):
-    loan = get_object_or_404(OldLoan, pk=pk)
 
-    if request.method == "POST":
 
-        # ❌ BLOCK IF ALREADY PAID
-        if loan.remaining_balance <= 0:
-            messages.error(request, "This loan is already fully paid.")
-            return redirect('customer_detail', pk=loan.customer.pk)
 
-        try:
-            amount = Decimal(request.POST.get("amount", 0))
-        except:
-            messages.error(request, "Invalid amount.")
-            return redirect('customer_detail', pk=loan.customer.pk)
 
-        # ❌ BLOCK ZERO OR NEGATIVE
-        if amount <= 0:
-            messages.error(request, "Amount must be greater than zero.")
-            return redirect('customer_detail', pk=loan.customer.pk)
 
-        # ❌ BLOCK OVERPAYMENT
-        if amount > loan.remaining_balance:
-            messages.error(
-                request,
-                f"Cannot pay ₱{amount}. Only ₱{loan.remaining_balance} remaining."
-            )
-            return redirect('customer_detail', pk=loan.customer.pk)
 
-        # ✅ CREATE PAYMENT
-        OldLoanPayment.objects.create(
-            old_loan=loan,
-            amount=amount
-        )
 
-        # ✅ UPDATE BALANCE
-        loan.remaining_balance -= amount
 
-        if loan.remaining_balance < 0:
-            loan.remaining_balance = 0
 
-        loan.save()
-
-        messages.success(request, f"Payment of ₱{amount} saved.")
-
-        return redirect('customer_detail', pk=loan.customer.pk)
-
-    return render(request, 'loans/pay_old_loan.html', {'loan': loan})
 
 def reloan(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
@@ -866,3 +931,6 @@ def pay_principal(request, loan_id):
         'form': form,
         'loan': loan
     })
+
+
+    

@@ -13,6 +13,11 @@ path('overdue-payments/', views.overdue_payments_view, name='overdue_payments'),
 path('other-loan-delete/<int:pk>/', views.other_loan_delete, name='other_loan_delete'),
 path('pay-other-loan/<int:pk>/', views.pay_other_loan, name='pay_other_loan'),
 path('other-loan/<int:pk>/', views.other_loan_detail, name='other_loan_detail'),
+path(
+    'customer/<int:pk>/update-contact/',
+    views.update_customer_contact,
+    name='update_customer_contact'
+),
 
 path('customer/<int:pk>/add-loan/', views.add_loan, name='add_loan'),
 path('customer/<int:pk>/add-emergency-loan/', views.add_emergency_loan, name='add_emergency_loan'),

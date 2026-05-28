@@ -500,6 +500,7 @@ def customer_detail(request, pk):
 # ================= LOANS =================
 from dateutil.relativedelta import relativedelta 
 def add_loan(request, pk):
+
     customer = get_object_or_404(Customer, pk=pk)
 
     if request.method == 'POST':
@@ -650,18 +651,6 @@ def add_loan(request, pk):
         'customer': customer,
      
     })
-
-       
-
-
-
-
-
-
-
-
-
-
 
 
 def reloan(request, pk):
@@ -915,4 +904,20 @@ def pay_principal(request, loan_id):
     })
 
 
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+
+def update_customer_contact(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+
+    if request.method == "POST":
+        customer.contact_number = request.POST.get('contact_number')
+        customer.save()
+
+        messages.success(request, "Contact number updated successfully.")
+
+    return redirect('customer_detail', pk=pk)
+
+
     
+

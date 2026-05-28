@@ -1,158 +1,184 @@
-{% extends 'loans/base.html' %}
-
-{% block content %}
+{% extends 'loans/base.html' %} {% block content %}
 <div class="container-fluid">
+  <!-- PAGE TITLE + FILTER -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold">Dashboard</h3>
 
-    <!-- PAGE TITLE + FILTER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">Dashboard</h3>
+    <div>
+      <a href="?filter=day" class="btn btn-sm btn-outline-primary">Today</a>
+      <a href="?filter=week" class="btn btn-sm btn-outline-primary"
+        >This Week</a
+      >
+      <a href="?filter=month" class="btn btn-sm btn-outline-primary"
+        >This Month</a
+      >
+      <a href="?filter=year" class="btn btn-sm btn-outline-primary"
+        >This Year</a
+      >
+    </div>
+  </div>
 
-        <div>
-            <a href="?filter=day" class="btn btn-sm btn-outline-primary">Today</a>
-            <a href="?filter=week" class="btn btn-sm btn-outline-primary">This Week</a>
-            <a href="?filter=month" class="btn btn-sm btn-outline-primary">This Month</a>
-            <a href="?filter=year" class="btn btn-sm btn-outline-primary">This Year</a>
-        </div>
+  <!-- MAIN STATS -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div
+        class="card shadow-sm p-3 text-white"
+        style="background-color: rgb(89, 149, 184)"
+      >
+        <small>Total Customers</small>
+        <h2 class="fw-bold mb-0">{{ total_customers }}</h2>
+      </div>
     </div>
 
-    <!-- MAIN STATS -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(89, 149, 184);">
-                <small>Total Customers</small>
-                <h2 class="fw-bold mb-0">{{ total_customers }}</h2>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(89, 184, 121);">
-                <small>Active Customers</small>
-                <h2 class="fw-bold mb-0">{{ active_customers }}</h2>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(189, 169, 59);">
-                <small>Income (Filtered)</small>
-                <h2 class="fw-bold mb-0">₱ {{ total_collection }}</h2>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(184, 89, 123);">
-                <small>Overdue Payments</small>
-                <h2 class="fw-bold mb-0">{{ overdue_payments }}</h2>
-            </div>
-        </div>
+    <div class="col-md-3">
+      <div
+        class="card shadow-sm p-3 text-white"
+        style="background-color: rgb(89, 184, 121)"
+      >
+        <small>Active Customers</small>
+        <h2 class="fw-bold mb-0">{{ active_customers }}</h2>
+      </div>
     </div>
 
-    <!-- FINANCIAL SUMMARY -->
-    <div class="row g-3 mb-4">
-
-        <!-- Total Released -->
-        <div class="col-md-4">
-            <div class="card shadow-sm p-3 text-white" style="background-color:#3498db;">
-                <small>Total Released</small>
-                <h3 class="fw-bold mb-0">₱ {{ total_released }}</h3>
-            </div>
-        </div>
-
-        <!-- Total Collection -->
-        <div class="col-md-4">
-            <div class="card shadow-sm p-3 text-white" style="background-color:#2ecc71;">
-                <small>Total Collection</small>
-                <h3 class="fw-bold mb-0">₱ {{ total_collection }}</h3>
-            </div>
-        </div>
-
-        <!-- Total Interest -->
-        <div class="col-md-4">
-            <div class="card shadow-sm p-3 text-dark" style="background-color:#f1c40f;">
-                <small>Total Interest Earned</small>
-                <h3 class="fw-bold mb-0">₱ {{ total_interest_collected }}</h3>
-            </div>
-        </div>
-
+    <div class="col-md-3">
+      <div
+        class="card shadow-sm p-3 text-white"
+        style="background-color: rgb(189, 169, 59)"
+      >
+        <small>Income (Filtered)</small>
+        <h2 class="fw-bold mb-0">₱ {{ total_collection }}</h2>
+      </div>
     </div>
 
-    <!-- LOAN ANALYTICS -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm p-3">
-                <small>Total Loans</small>
-                <h2 class="fw-bold">{{ total_loans }}</h2>
-            </div>
-        </div>
+    <div class="col-md-3">
+      <div
+        class="card shadow-sm p-3 text-white"
+        style="background-color: rgb(184, 89, 123)"
+      >
+        <small>Overdue Payments</small>
+        <h2 class="fw-bold mb-0">{{ overdue_payments }}</h2>
+      </div>
+    </div>
+  </div>
 
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(89, 184, 184);">
-                <small>Ongoing Loans</small>
-                <h2 class="fw-bold mb-0">{{ ongoing_loans }}</h2>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card shadow-sm p-3 text-white" style="background-color: rgb(184, 123, 89);">
-                <small>Paid Loans</small>
-                <h2 class="fw-bold mb-0">{{ paid_loans }}</h2>
-            </div>
-        </div>
+  <!-- FINANCIAL SUMMARY -->
+  <div class="row g-3 mb-4">
+    <!-- Total Released -->
+    <div class="col-md-4">
+      <div
+        class="card shadow-sm p-3 text-white"
+        style="background-color: #3498db"
+      >
+        <small>Total Released</small>
+        <h3 class="fw-bold mb-0">₱ {{ total_released }}</h3>
+      </div>
     </div>
 
-    <!-- CHART -->
-    <div class="card shadow-sm p-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">📊 Income Analytics</h5>
-            <small class="text-muted">Filter: {{ filter_type|title }}</small>
-        </div>
-
-        <canvas id="incomeChart" height="100"></canvas>
+    <!-- Total Collection -->
+    <div class="col-md-4">
+      <div
+        class="card shadow-sm p-3 text-white"
+        style="background-color: #2ecc71"
+      >
+        <small>Total Collection</small>
+        <h3 class="fw-bold mb-0">₱ {{ total_collection }}</h3>
+      </div>
     </div>
 
+    <!-- Total Interest -->
+    <div class="col-md-4">
+      <div
+        class="card shadow-sm p-3 text-dark"
+        style="background-color: #f1c40f"
+      >
+        <small>Total Interest Earned</small>
+        <h3 class="fw-bold mb-0">₱ {{ total_interest_collected }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAN ANALYTICS -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm p-3">
+        <small>Total Loans</small>
+        <h2 class="fw-bold">{{ total_loans }}</h2>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div
+        class="card shadow-sm p-3 text-white"
+        style="background-color: rgb(89, 184, 184)"
+      >
+        <small>Ongoing Loans</small>
+        <h2 class="fw-bold mb-0">{{ ongoing_loans }}</h2>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div
+        class="card shadow-sm p-3 text-white"
+        style="background-color: rgb(184, 123, 89)"
+      >
+        <small>Paid Loans</small>
+        <h2 class="fw-bold mb-0">{{ paid_loans }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="card shadow-sm p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">📊 Income Analytics</h5>
+      <small class="text-muted">Filter: {{ filter_type|title }}</small>
+    </div>
+
+    <canvas id="incomeChart" height="100"></canvas>
+  </div>
 </div>
-{% endblock %}
-
-
-{% block block_js %}
+{% endblock %} {% block block_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    const labels = JSON.parse('{{ chart_labels|escapejs }}');
-    const data = JSON.parse('{{ chart_data|escapejs }}');
+  const labels = JSON.parse("{{ chart_labels|escapejs }}");
+  const data = JSON.parse("{{ chart_data|escapejs }}");
 
-    const ctx = document.getElementById('incomeChart').getContext('2d');
+  const ctx = document.getElementById("incomeChart").getContext("2d");
 
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Collection',
-                data: data,
-                fill: true,
-                backgroundColor: 'rgba(46, 204, 113, 0.2)',
-                borderColor: 'rgba(46, 204, 113, 1)',
-                tension: 0.4,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Collection",
+          data: data,
+          fill: true,
+          backgroundColor: "rgba(46, 204, 113, 0.2)",
+          borderColor: "rgba(46, 204, 113, 1)",
+          tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { display: true }
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function (value) {
+              return "₱ " + value;
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '₱ ' + value;
-                        }
-                    }
-                }
-            }
-        }
-    });
+          },
+        },
+      },
+    },
+  });
 </script>
 {% endblock %}

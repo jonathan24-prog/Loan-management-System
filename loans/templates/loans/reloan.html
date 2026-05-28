@@ -1,41 +1,39 @@
-{% extends 'loans/base.html' %}
-
-{% block content %}
+{% extends 'loans/base.html' %} {% block content %}
 
 <div class="container mt-4">
-    <h3>Reloan for {{ customer.full_name }}</h3>
+  <h3>Reloan for {{ customer.full_name }}</h3>
 
-    <form method="POST">
-        {% csrf_token %}
+  <form method="POST">
+    {% csrf_token %}
 
-        <div class="mb-3">
-            <label>Loan Amount</label>
-            {{ form.loan_amount }}
-        </div>
+    <div class="mb-3">
+      <label>Loan Amount</label>
+      {{ form.loan_amount }}
+    </div>
 
-        <div class="mb-3">
-            <label>Interest Type</label>
-            {{ form.interest_type }}
-        </div>
+    <div class="mb-3">
+      <label>Interest Type</label>
+      {{ form.interest_type }}
+    </div>
 
-        <div class="mb-3">
-            <label>Interest Value</label>
-            {{ form.interest_value }}
-        </div>
+    <div class="mb-3">
+      <label>Interest Value</label>
+      {{ form.interest_value }}
+    </div>
 
-        <div class="mb-3">
-            <label>Start Date</label>
-            {{ form.start_date }}
-        </div>
+    <div class="mb-3">
+      <label>Start Date</label>
+      {{ form.start_date }}
+    </div>
 
-        <div class="mb-3">
-            <label>Due Date</label>
-            {{ form.due_date }}
-        </div>
+    <div class="mb-3">
+      <label>Due Date</label>
+      {{ form.due_date }}
+    </div>
 
-        <button type="submit" class="btn btn-warning">Save Reloan</button>
-        <a href="{% url 'customers' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+    <button type="submit" class="btn btn-warning">Save Reloan</button>
+    <a href="{% url 'customers' %}" class="btn btn-secondary">Cancel</a>
+  </form>
 </div>
 
 {% endblock %}

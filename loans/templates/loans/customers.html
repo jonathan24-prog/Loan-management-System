@@ -1,492 +1,549 @@
-
-{% extends 'loans/base.html' %}
-{% load format_currency %}
-{% block content %}
+{% extends 'loans/base.html' %} {% load format_currency %} {% block content %}
 
 <div class="container mt-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+    <h2 class="fw-bold">Customer Management</h2>
 
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-        <h2 class="fw-bold">Customer Management</h2>
-
-        <div class="d-flex gap-2 mt-2 mt-md-0">
-
-    <button type="button" class="btn btn-dark shadow-sm mt-2 mt-md-0"
-            data-bs-toggle="modal" data-bs-target="#addOtherLoanModal">
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+      <button
+        type="button"
+        class="btn btn-dark shadow-sm mt-2 mt-md-0"
+        data-bs-toggle="modal"
+        data-bs-target="#addOtherLoanModal"
+      >
         + Add Other Loans
-    </button>
+      </button>
 
-    <button type="button" class="btn btn-primary shadow-sm mt-2 mt-md-0"
-            data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+      <button
+        type="button"
+        class="btn btn-primary shadow-sm mt-2 mt-md-0"
+        data-bs-toggle="modal"
+        data-bs-target="#addCustomerModal"
+      >
         + Add Customer
-    </button>
-
-</div>
+      </button>
     </div>
+  </div>
 
-    <div class="table-container">
+  <div class="table-container">
+    <!-- 🔍 Search -->
+    <form
+      method="GET"
+      class="mb-4 d-flex justify-content-center"
+      id="searchForm"
+    >
+      <div class="search-wrapper">
+        <span class="search-icon">🔍</span>
 
-        <!-- 🔍 Search -->
-        <form method="GET" class="mb-4 d-flex justify-content-center" id="searchForm">
-            <div class="search-wrapper">
+        <input
+          type="text"
+          name="q"
+          id="searchInput"
+          class="search-input"
+          placeholder="Search customer name or contact number..."
+          value="{{ request.GET.q }}"
+        />
 
-                <span class="search-icon">🔍</span>
+        <!-- KEEP ACTIVE TAB -->
+        <input type="hidden" name="loan_type" value="{{ loan_filter }}" />
 
-                <input
-                    type="text"
-                    name="q"
-                    id="searchInput"
-                    class="search-input"
-                    placeholder="Search customer name or contact number..."
-                    value="{{ request.GET.q }}"
-                >
+        {% if request.GET.q %}
+        <button type="button" class="clear-btn" onclick="clearSearch()">
+          ✖
+        </button>
+        {% endif %}
+      </div>
+    </form>
 
-                <!-- KEEP ACTIVE TAB -->
-                <input type="hidden" name="loan_type" value="{{ loan_filter }}">
+    <!-- ================= CATEGORY TABS ================= -->
+    <div class="d-flex flex-wrap gap-2 mb-4 justify-content-center">
+      <a
+        href="?loan_type=all{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+        class="btn {% if loan_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+      >
+        All Customers
+      </a>
 
-                {% if request.GET.q %}
-                <button type="button" class="clear-btn" onclick="clearSearch()">✖</button>
-                {% endif %}
-            </div>
-        </form>
+      <a
+        href="?loan_type=daily{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+        class="btn {% if loan_filter == 'daily' %}btn-success{% else %}btn-outline-success{% endif %}"
+      >
+        Daily Loans
+      </a>
 
+      <a
+        href="?loan_type=weekly{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+        class="btn {% if loan_filter == 'weekly' %}btn-warning{% else %}btn-outline-warning{% endif %}"
+      >
+        Weekly Loans
+      </a>
 
-        <!-- ================= CATEGORY TABS ================= -->
-        <div class="d-flex flex-wrap gap-2 mb-4 justify-content-center">
-
-            <a href="?loan_type=all{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
-            class="btn {% if loan_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                All Customers
-            </a>
-
-            <a href="?loan_type=daily{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
-            class="btn {% if loan_filter == 'daily' %}btn-success{% else %}btn-outline-success{% endif %}">
-                Daily Loans
-            </a>
-
-            <a href="?loan_type=weekly{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
-            class="btn {% if loan_filter == 'weekly' %}btn-warning{% else %}btn-outline-warning{% endif %}">
-                Weekly Loans
-            </a>
-
-            <!-- <a href="?loan_type=others{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+      <!-- <a href="?loan_type=others{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
             class="btn {% if loan_filter == 'others' %}btn-dark{% else %}btn-outline-dark{% endif %}">
                 Other Loans
             </a> -->
+    </div>
+    <!-- ================================================= -->
 
-        </div>
-        <!-- ================================================= -->
+    <!-- 📋 Customer Table -->
+    <div
+      class="d-flex justify-content-end align-items-center gap-2 mb-3 flex-wrap"
+    >
+      <label class="fw-semibold text-muted mb-0"> Sort By: </label>
 
-
-        <!-- 📋 Customer Table -->
-                                            <div class="d-flex justify-content-end align-items-center gap-2 mb-3 flex-wrap">
-
-    <label class="fw-semibold text-muted mb-0">
-        Sort By:
-    </label>
-
-    <form method="GET">
-
+      <form method="GET">
         <!-- keep search -->
         {% if request.GET.q %}
-        <input type="hidden" name="q" value="{{ request.GET.q }}">
+        <input type="hidden" name="q" value="{{ request.GET.q }}" />
         {% endif %}
 
         <!-- keep loan filter -->
-        <input type="hidden" name="loan_type" value="{{ loan_filter }}">
+        <input type="hidden" name="loan_type" value="{{ loan_filter }}" />
 
-        <select name="sort"
-                class="form-select"
-                onchange="this.form.submit()">
+        <select name="sort" class="form-select" onchange="this.form.submit()">
+          <option
+            value="latest"
+            {%
+            if
+            sort_by=""
+            ="latest"
+            %}selected{%
+            endif
+            %}
+          >
+            Latest Added
+          </option>
 
-            <option value="latest"
-                {% if sort_by == 'latest' %}selected{% endif %}>
-                Latest Added
-            </option>
+          <option
+            value="oldest"
+            {%
+            if
+            sort_by=""
+            ="oldest"
+            %}selected{%
+            endif
+            %}
+          >
+            Oldest Added
+          </option>
 
-            <option value="oldest"
-                {% if sort_by == 'oldest' %}selected{% endif %}>
-                Oldest Added
-            </option>
+          <option
+            value="name_asc"
+            {%
+            if
+            sort_by=""
+            ="name_asc"
+            %}selected{%
+            endif
+            %}
+          >
+            Name A-Z
+          </option>
 
-            <option value="name_asc"
-                {% if sort_by == 'name_asc' %}selected{% endif %}>
-                Name A-Z
-            </option>
-
-            <option value="name_desc"
-                {% if sort_by == 'name_desc' %}selected{% endif %}>
-                Name Z-A
-            </option>
-
+          <option
+            value="name_desc"
+            {%
+            if
+            sort_by=""
+            ="name_desc"
+            %}selected{%
+            endif
+            %}
+          >
+            Name Z-A
+          </option>
         </select>
-
-    </form>
-
-</div>
-        <div class="table-responsive table-scroll">
-            <table class="table modern-table align-middle">
-       
-                <thead style="background-color: #cccccc;">
-                    <tr>
-                        <th style="font-weight: 800; color: black;">Name</th>
-                        <th style="font-weight: 800; color: black;">Contact Number</th>
-                        <th style="font-weight: 800; color: black;">Status</th>
-                        <th style="font-weight: 800; color: black;">Today's Status</th>
-                        <th class="text-center" style="font-weight: 800; color: black;">Actions</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    {% for customer in customers %}
-                    <tr class="clickable-row" data-href="{% url 'customer_detail' customer.pk %}">
-                        <td class="fw-semibold">{{ customer.full_name }}</td>
-                        <td>{{ customer.contact_number }}</td>
-
-                        <td>
-                            {% if customer.is_active %}
-                                <span class="badge bg-success px-3 py-2">Active</span>
-                            {% else %}
-                                <span class="badge bg-secondary px-3 py-2">No Loan</span>
-                            {% endif %}
-                        </td>
-
-                        <td>
-                            {% if customer.today_status == "Paid" %}
-                                <span class="badge bg-success px-3 py-2">Paid</span>
-                            {% elif customer.today_status == "Unpaid" %}
-                                <span class="badge bg-danger px-3 py-2">Unpaid</span>
-                            {% else %}
-                                <span class="badge bg-dark px-3 py-2">No Schedule</span>
-                            {% endif %}
-                        </td>
-
-                        <td class="text-center">
-
-                            <a href="{% url 'add_loan' customer.pk %}"
-                            class="btn btn-sm btn-success action-btn">
-                                Add Loan
-                            </a>
-
-                            <a href="{% url 'add_emergency_loan' customer.pk %}"
-                            class="btn btn-sm btn-warning action-btn">
-                                Add Emergency Loan
-                            </a>
-
-                            <button type="button" class="btn btn-sm btn-danger action-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal{{ customer.pk }}">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-
-        {% if not customers %}
-        <div class="empty-state mt-3">
-            <h5>No customers found</h5>
-            <p>Try adjusting your search or add a new customer.</p>
-        </div>
-        {% endif %}
-
+      </form>
     </div>
-
-
-  
-
-<hr class="my-4">
-<div class="table-container">
-
-<h4 class="fw-bold mb-3">Other Loans</h4>
-
-<div class="table-responsive table-scroll" style="max-height: 400px; overflow-y: auto;" >
-    <table class="table modern-table align-middle">
-
-        <thead style="background-color: #cccccc;">
-            <tr>
-                <th style="font-weight: 800; color: black;">Name</th>
-                <th style="font-weight: 800; color: black;">Contact Number</th>
-                <th style="font-weight: 800; color: black;">Loan Amount</th>
-                <th style="font-weight: 800; color: black;">Remaining Balance</th>
-                <th style="font-weight: 800; color: black;">Status</th>
-                <th style="font-weight: 800; color: black;">Today Status</th>
-                <th class="text-center" style="font-weight: 800; color: black;">Actions</th>
-            </tr>
+    <div class="table-responsive table-scroll">
+      <table class="table modern-table align-middle">
+        <thead style="background-color: #cccccc">
+          <tr>
+            <th style="font-weight: 800; color: black">Name</th>
+            <th style="font-weight: 800; color: black">Contact Number</th>
+            <th style="font-weight: 800; color: black">Status</th>
+            <th style="font-weight: 800; color: black">Today's Status</th>
+            <th class="text-center" style="font-weight: 800; color: black">
+              Actions
+            </th>
+          </tr>
         </thead>
 
         <tbody>
-            {% for loan in other_loans %}
-            <tr class="clickable-row" data-href="{% url 'other_loan_detail' loan.id %}">
+          {% for customer in customers %}
+          <tr
+            class="clickable-row"
+            data-href="{% url 'customer_detail' customer.pk %}"
+          >
+            <td class="fw-semibold">{{ customer.full_name }}</td>
+            <td>{{ customer.contact_number }}</td>
 
-                <td class="fw-semibold">{{ loan.full_name }}</td>
-                <td>{{ loan.contact_number }}</td>
-                <td>{{ loan.loan_amount|peso }}</td>
-                <td>{{ loan.remaining_balance|peso }}</td>
+            <td>
+              {% if customer.is_active %}
+              <span class="badge bg-success px-3 py-2">Active</span>
+              {% else %}
+              <span class="badge bg-secondary px-3 py-2">No Loan</span>
+              {% endif %}
+            </td>
 
-                <!-- STATUS -->
-                <td>
-                    {% if loan.remaining_balance > 0 %}
-                        <span class="badge bg-success px-3 py-2">Active</span>
-                    {% else %}
-                        <span class="badge bg-secondary px-3 py-2">Completed</span>
-                    {% endif %}
-                </td>
+            <td>
+              {% if customer.today_status == "Paid" %}
+              <span class="badge bg-success px-3 py-2">Paid</span>
+              {% elif customer.today_status == "Unpaid" %}
+              <span class="badge bg-danger px-3 py-2">Unpaid</span>
+              {% else %}
+              <span class="badge bg-dark px-3 py-2">No Schedule</span>
+              {% endif %}
+            </td>
 
-                <!-- TODAY STATUS -->
-                <td>
-                    <span class="badge bg-dark px-3 py-2">Other</span>
-                </td>
+            <td class="text-center">
+              <a
+                href="{% url 'add_loan' customer.pk %}"
+                class="btn btn-sm btn-success action-btn"
+              >
+                Add Loan
+              </a>
 
-                <!-- ACTIONS -->
-                <td class="text-center">
+              <a
+                href="{% url 'add_emergency_loan' customer.pk %}"
+                class="btn btn-sm btn-warning action-btn"
+              >
+                Add Emergency Loan
+              </a>
 
-                    <a href="{% url 'other_loan_detail' loan.id %}"
-                       class="btn btn-sm btn-success action-btn">
-                        History
-                    </a>
-
-                    <a href="{% url 'pay_other_loan' loan.id %}"
-                       class="btn btn-sm btn-warning action-btn">
-                        Pay
-                    </a>
-
-                    <form method="POST"
-                          action="{% url 'other_loan_delete' loan.id %}"
-                          style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit"
-                                class="btn btn-sm btn-danger action-btn">
-                            Delete
-                        </button>
-                    </form>
-
-                </td>
-
-            </tr>
-            {% endfor %}
+              <button
+                type="button"
+                class="btn btn-sm btn-danger action-btn"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal{{ customer.pk }}"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
-
-    </table>
-</div>
-</div>
-{% if not other_loans %}
-<div class="empty-state mt-3">
-    <h5>No other loans found</h5>
-    <p>Try adding a new loan record.</p>
-</div>
-{% endif %}
-
-
-    <!-- 📊 Footer Summary -->
-    <div class="d-flex justify-content-center gap-4 mt-4 text-muted small flex-wrap">
-        <div>
-            Active Customers:
-            <strong class="text-success">{{ active_customers }}</strong>
-        </div>
-
-        <div>
-            Total Customers:
-            <strong class="text-primary">{{ customers|length }}</strong>
-        </div>
+      </table>
     </div>
 
-</div>
+    {% if not customers %}
+    <div class="empty-state mt-3">
+      <h5>No customers found</h5>
+      <p>Try adjusting your search or add a new customer.</p>
+    </div>
+    {% endif %}
+  </div>
 
+  <hr class="my-4" />
+  <div class="table-container">
+    <h4 class="fw-bold mb-3">Other Loans</h4>
+
+    <div
+      class="table-responsive table-scroll"
+      style="max-height: 400px; overflow-y: auto"
+    >
+      <table class="table modern-table align-middle">
+        <thead style="background-color: #cccccc">
+          <tr>
+            <th style="font-weight: 800; color: black">Name</th>
+            <th style="font-weight: 800; color: black">Contact Number</th>
+            <th style="font-weight: 800; color: black">Loan Amount</th>
+            <th style="font-weight: 800; color: black">Remaining Balance</th>
+            <th style="font-weight: 800; color: black">Status</th>
+            <th style="font-weight: 800; color: black">Today Status</th>
+            <th class="text-center" style="font-weight: 800; color: black">
+              Actions
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for loan in other_loans %}
+          <tr
+            class="clickable-row"
+            data-href="{% url 'other_loan_detail' loan.id %}"
+          >
+            <td class="fw-semibold">{{ loan.full_name }}</td>
+            <td>{{ loan.contact_number }}</td>
+            <td>{{ loan.loan_amount|peso }}</td>
+            <td>{{ loan.remaining_balance|peso }}</td>
+
+            <!-- STATUS -->
+            <td>
+              {% if loan.remaining_balance > 0 %}
+              <span class="badge bg-success px-3 py-2">Active</span>
+              {% else %}
+              <span class="badge bg-secondary px-3 py-2">Completed</span>
+              {% endif %}
+            </td>
+
+            <!-- TODAY STATUS -->
+            <td>
+              <span class="badge bg-dark px-3 py-2">Other</span>
+            </td>
+
+            <!-- ACTIONS -->
+            <td class="text-center">
+              <a
+                href="{% url 'other_loan_detail' loan.id %}"
+                class="btn btn-sm btn-success action-btn"
+              >
+                History
+              </a>
+
+              <a
+                href="{% url 'pay_other_loan' loan.id %}"
+                class="btn btn-sm btn-warning action-btn"
+              >
+                Pay
+              </a>
+
+              <form
+                method="POST"
+                action="{% url 'other_loan_delete' loan.id %}"
+                style="display: inline"
+              >
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger action-btn">
+                  Delete
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if not other_loans %}
+  <div class="empty-state mt-3">
+    <h5>No other loans found</h5>
+    <p>Try adding a new loan record.</p>
+  </div>
+  {% endif %}
+
+  <!-- 📊 Footer Summary -->
+  <div
+    class="d-flex justify-content-center gap-4 mt-4 text-muted small flex-wrap"
+  >
+    <div>
+      Active Customers:
+      <strong class="text-success">{{ active_customers }}</strong>
+    </div>
+
+    <div>
+      Total Customers:
+      <strong class="text-primary">{{ customers|length }}</strong>
+    </div>
+  </div>
+</div>
 
 <!-- ✅ Add Customer Modal -->
 <div class="modal fade" id="addCustomerModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg rounded-3">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Add Customer</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Add Customer</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+      <form method="POST">
+        {% csrf_token %}
 
-            <form method="POST">
-                {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Full Name</label>
+            {{ form.full_name }}
+          </div>
 
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Full Name</label>
-                        {{ form.full_name }}
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Contact Number</label>
-                        {{ form.contact_number }}
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-
-                    <button type="submit" class="btn btn-primary px-4">
-                        Save
-                    </button>
-                </div>
-
-            </form>
-
+          <div class="mb-3">
+            <label class="form-label">Contact Number</label>
+            {{ form.contact_number }}
+          </div>
         </div>
-    </div>
-</div>
 
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-light border"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+
+          <button type="submit" class="btn btn-primary px-4">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- ================= ADD OTHER LOANS MODAL ================= -->
 <div class="modal fade" id="addOtherLoanModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content shadow-lg rounded-3">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Add Other Loan</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Add Other Loan</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+      <form method="POST">
+        {% csrf_token %}
 
-            <form method="POST">
-                {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" name="full_name" class="form-control" required />
+          </div>
 
-                <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Contact Number</label>
+            <input type="text" name="contact_number" class="form-control" />
+          </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Name</label>
-                        <input type="text" name="full_name" class="form-control" required>
-                    </div>
+          <div class="mb-3">
+            <label class="form-label">Loan Amount</label>
+            <input
+              type="number"
+              step="0.01"
+              name="loan_amount"
+              class="form-control"
+              required
+            />
+          </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Contact Number</label>
-                        <input type="text" name="contact_number" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Loan Amount</label>
-                        <input type="number" step="0.01" name="loan_amount" class="form-control" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Remaining Balance</label>
-                        <input type="number" step="0.01" name="remaining_balance" class="form-control" required>
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-
-                    <button type="submit" class="btn btn-dark px-4">
-                        Save
-                    </button>
-                </div>
-
-            </form>
-
+          <div class="mb-3">
+            <label class="form-label">Remaining Balance</label>
+            <input
+              type="number"
+              step="0.01"
+              name="remaining_balance"
+              class="form-control"
+              required
+            />
+          </div>
         </div>
-    </div>
-</div>
 
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-light border"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+
+          <button type="submit" class="btn btn-dark px-4">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- ✅ Delete Modals -->
 {% for customer in customers %}
 <div class="modal fade" id="deleteModal{{ customer.pk }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content shadow-lg rounded-3">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow-lg rounded-3">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Confirm Deletion</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
 
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold">Confirm Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+      <div class="modal-body text-center">
+        <p>Are you sure you want to delete</p>
+        <strong class="text-danger">{{ customer.full_name }}</strong>?
+      </div>
 
-            <div class="modal-body text-center">
-                <p>Are you sure you want to delete</p>
-                <strong class="text-danger">{{ customer.full_name }}</strong>?
-            </div>
+      <div class="modal-footer justify-content-center">
+        <button
+          type="button"
+          class="btn btn-light border"
+          data-bs-dismiss="modal"
+        >
+          Cancel
+        </button>
 
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-light border"
-                        data-bs-dismiss="modal">
-                    Cancel
-                </button>
-
-                <form method="POST" action="{% url 'customer_delete' customer.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">
-                        Yes, Delete
-                    </button>
-                </form>
-            </div>
-
-        </div>
+        <form method="POST" action="{% url 'customer_delete' customer.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 {% endfor %}
-
 
 <!-- Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-
+  document.addEventListener("DOMContentLoaded", function () {
     // Clickable rows
-    document.querySelectorAll('.clickable-row').forEach(row => {
-        row.addEventListener('click', () => {
-            window.location.href = row.dataset.href;
-        });
+    document.querySelectorAll(".clickable-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        window.location.href = row.dataset.href;
+      });
     });
 
     // Prevent row click on buttons
-    document.querySelectorAll('button, a').forEach(el => {
-        el.addEventListener('click', function(event){
-            event.stopPropagation();
-        });
+    document.querySelectorAll("button, a").forEach((el) => {
+      el.addEventListener("click", function (event) {
+        event.stopPropagation();
+      });
     });
 
     // Auto search debounce
     let timer;
-    const input = document.getElementById('searchInput');
+    const input = document.getElementById("searchInput");
 
-    input.addEventListener('keyup', function () {
-        clearTimeout(timer);
+    input.addEventListener("keyup", function () {
+      clearTimeout(timer);
 
-        timer = setTimeout(() => {
-            document.getElementById('searchForm').submit();
-        }, 700);
+      timer = setTimeout(() => {
+        document.getElementById("searchForm").submit();
+      }, 700);
     });
-});
+  });
 
-// Clear search
-function clearSearch() {
-    const input = document.getElementById('searchInput');
-    input.value = '';
-    document.getElementById('searchForm').submit();
-}
+  // Clear search
+  function clearSearch() {
+    const input = document.getElementById("searchInput");
+    input.value = "";
+    document.getElementById("searchForm").submit();
+  }
 </script>
 
 <style>
-.table-container {
+  .table-container {
     background: #fff;
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
     overflow-x: auto;
-}
+  }
 
-.modern-table {
+  .modern-table {
     margin-bottom: 0;
     border-collapse: separate;
     border-spacing: 0 10px;
     width: 100%;
-}
+  }
 
-.modern-table thead th {
+  .modern-table thead th {
     border: none;
     font-size: 13px;
     color: #555;
@@ -494,44 +551,44 @@ function clearSearch() {
     position: sticky;
     top: 0;
     z-index: 2;
-}
+  }
 
-.modern-table tbody tr {
+  .modern-table tbody tr {
     background: #f9f9f9;
     border-radius: 10px;
     transition: 0.2s;
-}
+  }
 
-.modern-table tbody tr:hover {
+  .modern-table tbody tr:hover {
     background: #eaeaea;
-}
+  }
 
-.action-btn {
+  .action-btn {
     margin: 2px;
     transition: 0.2s;
-}
+  }
 
-.action-btn:hover {
+  .action-btn:hover {
     transform: translateY(-2px);
-}
+  }
 
-.empty-state {
+  .empty-state {
     text-align: center;
     padding: 30px;
     color: #888;
-}
+  }
 
-.form-select {
+  .form-select {
     width: 220px;
     border-radius: 10px;
-}
-.search-wrapper {
+  }
+  .search-wrapper {
     position: relative;
     max-width: 400px;
     width: 100%;
-}
+  }
 
-.search-input {
+  .search-input {
     width: 100%;
     padding: 10px 40px;
     border-radius: 25px;
@@ -539,23 +596,23 @@ function clearSearch() {
     outline: none;
     transition: 0.3s;
     font-size: 14px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
 
-.search-input:focus {
+  .search-input:focus {
     border-color: #0d6efd;
     box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
-}
+  }
 
-.search-icon {
+  .search-icon {
     position: absolute;
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
     color: #888;
-}
+  }
 
-.clear-btn {
+  .clear-btn {
     position: absolute;
     right: 12px;
     top: 50%;
@@ -564,63 +621,61 @@ function clearSearch() {
     background: none;
     cursor: pointer;
     color: #999;
-}
+  }
 
-.clear-btn:hover {
+  .clear-btn:hover {
     color: #000;
-}
+  }
 
-.modal input {
+  .modal input {
     width: 100%;
     border-radius: 8px;
     padding: 10px;
     border: 1px solid #ccc;
-}
+  }
 
-.table-scroll {
+  .table-scroll {
     max-height: 400px;
     overflow-y: auto;
-}
+  }
 
-.modal input:focus {
+  .modal input:focus {
     border-color: #0d6efd;
-    box-shadow: 0 0 5px rgba(13,110,253,0.3);
-}
+    box-shadow: 0 0 5px rgba(13, 110, 253, 0.3);
+  }
 
-@media (max-width: 768px) {
-
+  @media (max-width: 768px) {
     .modern-table thead th,
     .modern-table tbody td {
-        font-size: 12px;
-        padding: 8px 6px;
+      font-size: 12px;
+      padding: 8px 6px;
     }
 
     .search-wrapper {
-        max-width: 100%;
-        padding: 0 10px;
+      max-width: 100%;
+      padding: 0 10px;
     }
 
     .search-input {
-        padding: 8px 35px;
-        font-size: 13px;
+      padding: 8px 35px;
+      font-size: 13px;
     }
 
     .action-btn {
-        margin: 1px;
-        font-size: 12px;
-        padding: 4px 6px;
+      margin: 1px;
+      font-size: 12px;
+      padding: 4px 6px;
     }
 
     .modal input {
-        padding: 8px;
+      padding: 8px;
     }
 
     .d-flex.flex-wrap {
-        flex-direction: column;
-        align-items: stretch;
+      flex-direction: column;
+      align-items: stretch;
     }
-}
+  }
 </style>
 
 {% endblock %}
-

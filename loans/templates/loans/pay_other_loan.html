@@ -1,28 +1,20 @@
-{% extends 'loans/base.html' %}
-{% load format_currency %}
-{% block content %}
+{% extends 'loans/base.html' %} {% load format_currency %} {% block content %}
 
 <div class="container mt-4">
-    <a href="javascript:history.back()" class="btn btn-secondary mb-3">
+  <a href="javascript:history.back()" class="btn btn-secondary mb-3">
     ← Back
-</a>
-    <h3>Pay Loan - {{ loan.full_name }}</h3>
+  </a>
+  <h3>Pay Loan - {{ loan.full_name }}</h3>
 
-    <p>Remaining Balance: <strong>{{ loan.remaining_balance|peso }}</strong></p>
+  <p>Remaining Balance: <strong>{{ loan.remaining_balance|peso }}</strong></p>
 
-    <form method="POST">
-        {% csrf_token %}
+  <form method="POST">
+    {% csrf_token %}
 
-        <div class="mb-3">
-            {{ form.amount.label_tag }}
-            {{ form.amount }}
-        </div>
+    <div class="mb-3">{{ form.amount.label_tag }} {{ form.amount }}</div>
 
-        <button class="btn btn-primary">
-            Submit Payment
-        </button>
-    </form>
-
+    <button class="btn btn-primary">Submit Payment</button>
+  </form>
 </div>
 
 {% endblock %}

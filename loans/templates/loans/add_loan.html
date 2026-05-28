@@ -59,24 +59,107 @@
         </div>
         {% endif %}
 
-        <button type="submit" class="btn btn-success">Add Loan</button>
+        <button type="button" class="btn btn-success" id="previewBtn">
+            Add Loan
+        </button>
         <a href="{% url 'customer_detail' customer.pk %}" class="btn btn-secondary">Cancel</a>
     </form>
+</div>
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmLoanModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Loan Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <table class="table table-bordered">
+                    <tr>
+                        <th>Loan Amount</th>
+                        <td id="previewLoanAmount"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Payment Frequency</th>
+                        <td id="previewFrequency"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Payment Per Schedule</th>
+                        <td id="previewPayment"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Interest Type</th>
+                        <td id="previewInterestType"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Interest Value</th>
+                        <td id="previewInterestValue"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Start Date</th>
+                        <td id="previewStartDate"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Due Date</th>
+                        <td id="previewDueDate"></td>
+                    </tr>
+                </table>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button type="button"
+                        class="btn btn-success"
+                        id="confirmSubmitBtn">
+                    Confirm Add Loan
+                </button>
+            </div>
+
+        </div>
+    </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
+
     const toggle = document.getElementById("autoPaymentToggle");
     const paymentInput = document.querySelector("input[name='payment_amount']");
     const dueDateInput = document.querySelector("input[name='due_date']");
+    const form = document.querySelector("form");
+
+    const previewBtn = document.getElementById("previewBtn");
+    const confirmSubmitBtn = document.getElementById("confirmSubmitBtn");
+
+    const modal = new bootstrap.Modal(
+        document.getElementById("confirmLoanModal")
+    );
 
     function updateState() {
+
         if (toggle.checked) {
+
             paymentInput.disabled = false;
 
             dueDateInput.disabled = true;
             dueDateInput.value = "";
+
         } else {
+
             paymentInput.disabled = true;
             paymentInput.value = "";
 
@@ -85,8 +168,54 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     updateState();
+
     toggle.addEventListener("change", updateState);
+
+    // PREVIEW BUTTON
+    previewBtn.addEventListener("click", function () {
+
+        // Get values
+        const loanAmount =
+            document.querySelector("input[name='loan_amount']").value;
+
+        const frequency =
+            document.querySelector("select[name='payment_frequency']")
+            .selectedOptions[0].text;
+
+        const payment =
+            paymentInput.value || "Auto Compute";
+
+        const interestType =
+            document.querySelector("select[name='interest_type']")
+            .selectedOptions[0].text;
+
+        const interestValue =
+            document.querySelector("input[name='interest_value']").value;
+
+        const startDate =
+            document.querySelector("input[name='start_date']").value;
+
+        const dueDate =
+            dueDateInput.value || "Auto Computed";
+
+        // Display in modal
+        document.getElementById("previewLoanAmount").innerText = loanAmount;
+        document.getElementById("previewFrequency").innerText = frequency;
+        document.getElementById("previewPayment").innerText = payment;
+        document.getElementById("previewInterestType").innerText = interestType;
+        document.getElementById("previewInterestValue").innerText = interestValue;
+        document.getElementById("previewStartDate").innerText = startDate;
+        document.getElementById("previewDueDate").innerText = dueDate;
+
+        // Show modal
+        modal.show();
+    });
+
+    // FINAL SUBMIT
+    confirmSubmitBtn.addEventListener("click", function () {
+        form.submit();
+    });
+
 });
 </script>
-
 {% endblock %}

@@ -1,4 +1,4 @@
-```html
+
 {% extends 'loans/base.html' %}
 
 {% block content %}
@@ -79,8 +79,54 @@
 
 
         <!-- 📋 Customer Table -->
+                                            <div class="d-flex justify-content-end align-items-center gap-2 mb-3 flex-wrap">
+
+    <label class="fw-semibold text-muted mb-0">
+        Sort By:
+    </label>
+
+    <form method="GET">
+
+        <!-- keep search -->
+        {% if request.GET.q %}
+        <input type="hidden" name="q" value="{{ request.GET.q }}">
+        {% endif %}
+
+        <!-- keep loan filter -->
+        <input type="hidden" name="loan_type" value="{{ loan_filter }}">
+
+        <select name="sort"
+                class="form-select"
+                onchange="this.form.submit()">
+
+            <option value="latest"
+                {% if sort_by == 'latest' %}selected{% endif %}>
+                Latest Added
+            </option>
+
+            <option value="oldest"
+                {% if sort_by == 'oldest' %}selected{% endif %}>
+                Oldest Added
+            </option>
+
+            <option value="name_asc"
+                {% if sort_by == 'name_asc' %}selected{% endif %}>
+                Name A-Z
+            </option>
+
+            <option value="name_desc"
+                {% if sort_by == 'name_desc' %}selected{% endif %}>
+                Name Z-A
+            </option>
+
+        </select>
+
+    </form>
+
+</div>
         <div class="table-responsive table-scroll">
             <table class="table modern-table align-middle">
+       
                 <thead style="background-color: #cccccc;">
                     <tr>
                         <th style="font-weight: 800; color: black;">Name</th>
@@ -474,6 +520,10 @@ function clearSearch() {
     color: #888;
 }
 
+.form-select {
+    width: 220px;
+    border-radius: 10px;
+}
 .search-wrapper {
     position: relative;
     max-width: 400px;

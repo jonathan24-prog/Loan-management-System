@@ -230,6 +230,10 @@ from .models import OtherLoan
 def customers(request):
     query = request.GET.get('q')
     loan_filter = request.GET.get('loan_type', 'all')
+
+    # NEW
+    sort_by = request.GET.get('sort', 'latest')
+
     other_loans = OtherLoan.objects.all()
 
     customers = Customer.objects.all().prefetch_related(
@@ -246,25 +250,30 @@ def customers(request):
 
     # ================= LOAN CATEGORY FILTER =================
 
-    # DAILY LOANS
     if loan_filter == 'daily':
         customers = customers.filter(
             loans__payment_frequency='daily'
         ).distinct()
 
-    # WEEKLY LOANS
     elif loan_filter == 'weekly':
         customers = customers.filter(
             loans__payment_frequency='weekly'
         ).distinct()
 
-    # OTHER LOANS (monthly + semi_monthly)
-    # elif loan_filter == 'others':
-    #     customers = customers.filter(
-    #         old_loans__remaining_balance__gt=0
-    #     ).distinct()
+    # ================= SORTING =================
 
-    # 'all' = no filter
+    if sort_by == 'name_asc':
+        customers = customers.order_by('full_name')
+
+    elif sort_by == 'name_desc':
+        customers = customers.order_by('-full_name')
+
+    elif sort_by == 'oldest':
+        customers = customers.order_by('id')
+
+    else:
+        # latest
+        customers = customers.order_by('-id')
 
     # ========================================================
 
@@ -279,19 +288,16 @@ def customers(request):
         today = date.today()
         customer.today_status = "Unpaid"
 
-        # Regular schedules today
         regular_schedules_today = PaymentSchedule.objects.filter(
             loan__customer=customer,
             date=today
         )
 
-        # Emergency schedules today
         emergency_schedules_today = EmergencyPaymentSchedule.objects.filter(
             emergency_loan__customer=customer,
             date=today
         )
 
-        # Combine schedules
         all_schedules_today = (
             list(regular_schedules_today) +
             list(emergency_schedules_today)
@@ -299,7 +305,6 @@ def customers(request):
 
         if all_schedules_today:
 
-            # If ALL schedules are paid
             if all(s.is_paid for s in all_schedules_today):
                 customer.today_status = "Paid"
 
@@ -309,15 +314,11 @@ def customers(request):
         else:
             customer.today_status = "no schedule"
 
-    # ========================================================
+    # ================= ADD CUSTOMER =================
 
-    # ADD CUSTOMER
     if request.method == "POST":
 
-
-
         form = CustomerForm(request.POST)
-
 
         if request.method == "POST" and 'loan_amount' in request.POST:
             full_name = request.POST.get('full_name')
@@ -348,6 +349,9 @@ def customers(request):
         'other_loans': other_loans,
         'active_customers': active_customers,
         'loan_filter': loan_filter,
+
+        # NEW
+        'sort_by': sort_by,
     }
 
     return render(request, 'loans/customers.html', context)

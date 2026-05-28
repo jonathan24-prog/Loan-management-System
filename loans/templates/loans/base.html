@@ -170,15 +170,18 @@
             <i class='bx bx-x close-sidebar' id="close-sidebar"></i>
         </div>
 
-        <a href="{% url 'dashboard' %}" class="active">
+        <a href="{% url 'dashboard' %}"
+        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <i class='bx bx-grid-alt'></i> Dashboard
         </a>
 
-        <a href="{% url 'customers' %}">
+        <a href="{% url 'customers' %}"
+        class="{% if request.resolver_match.url_name == 'customers' %}active{% endif %}">
             <i class='bx bx-user'></i> Customers
         </a>
 
-        <a href="{% url 'dashboard' %}">
+       <a href="{% url 'dashboard' %}"
+        class="{% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
             <i class='bx bx-bar-chart-alt-2'></i> Transactions
         </a>
 

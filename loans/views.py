@@ -1,6 +1,8 @@
 # ================= IMPORTS =================
 from datetime import date, timedelta
 import json
+from math import ceil
+import calendar
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -12,6 +14,8 @@ from django.utils import timezone
 from .models import (
     Customer,
     Loan,
+    OtherLoan,
+    OtherLoanPayment,
     PaymentSchedule,
     EmergencyLoan,
     EmergencyPaymentSchedule,
@@ -22,6 +26,7 @@ from .forms import (
     LoanForm,
     EmergencyLoanForm,
     PrincipalPaymentForm,
+    OtherLoanPaymentForm
   
 )
 
@@ -40,11 +45,9 @@ def login_view(request):
 
     return render(request, 'loans/login.html')
 
-
 def logout_view(request):
     logout(request)
     return redirect('login')
-
 
 # ================= DASHBOARD =================
 def dashboard(request):
@@ -210,7 +213,6 @@ def dashboard(request):
 
     return render(request, 'loans/dashboard.html', context)
 
-
 def overdue_payments_view(request):
     today = date.today()
 
@@ -223,9 +225,7 @@ def overdue_payments_view(request):
         'overdue_schedules': overdue_schedules
     })
 
-# ================= CUSTOMERS =================
 
-from .models import OtherLoan
 # ================= CUSTOMERS =================
 def customers(request):
     query = request.GET.get('q')
@@ -356,22 +356,12 @@ def customers(request):
 
     return render(request, 'loans/customers.html', context)
 
-from .models import OtherLoan
-from django.shortcuts import get_object_or_404, redirect
-
 def other_loan_delete(request, pk):
     loan = get_object_or_404(OtherLoan, pk=pk)
 
     if request.method == "POST":
         loan.delete()
         return redirect('customers')
-
-
-from .models import OtherLoan, OtherLoanPayment
-from .forms import OtherLoanPaymentForm
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
-
 
 def pay_other_loan(request, pk):
     loan = get_object_or_404(OtherLoan, pk=pk)
@@ -394,9 +384,6 @@ def pay_other_loan(request, pk):
         'form': form,
         'loan': loan
     })
-
-from .models import OtherLoan
-from django.db.models import Sum
 
 def other_loan_detail(request, pk):
     loan = get_object_or_404(OtherLoan, pk=pk)
@@ -424,7 +411,6 @@ def customer_delete(request, pk):
         return redirect('customers')
 
     return render(request, 'loans/customer_confirm_delete.html', {'customer': customer})
-
 
 # ================= CUSTOMER DETAIL =================
 def customer_detail(request, pk):
@@ -511,16 +497,8 @@ def customer_detail(request, pk):
 
     return render(request, 'loans/customer_detail.html', context)
 
-
 # ================= LOANS =================
-from datetime import timedelta
-from dateutil.relativedelta import relativedelta  # install if needed
-
-from math import ceil
-from datetime import timedelta
-from dateutil.relativedelta import relativedelta
-import calendar
-
+from dateutil.relativedelta import relativedelta 
 def add_loan(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
 

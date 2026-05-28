@@ -1,5 +1,5 @@
     {% extends 'loans/base.html' %}
-
+{% load format_currency %}
     {% block content %}
 
     <style>
@@ -77,21 +77,21 @@
                 <div class="col-4">
                     <div class="stat-card" style="background:#3498db;">
                         <div class="stat-title">Released</div>
-                        <div class="stat-value">₱{{ total_released }}</div>
+                        <div class="stat-value">{{ total_released|peso }}</div>
                     </div>
                 </div>
 
                 <div class="col-4">
                     <div class="stat-card" style="background:#2ecc71;">
                         <div class="stat-title">Collection</div>
-                        <div class="stat-value">₱{{ total_collection }}</div>
+                        <div class="stat-value">{{ total_collection|peso }}</div>
                     </div>
                 </div>
 
                 <div class="col-4">
                     <div class="stat-card" style="background:#f1c40f; color:#000;">
                         <div class="stat-title">Interest</div>
-                        <div class="stat-value">₱{{ total_interest_collected }}</div>
+                        <div class="stat-value">{{ total_interest_collected|peso }}</div>
                     </div>
                 </div>
 
@@ -110,7 +110,7 @@
                 <div class="col-6">
                     <div class="stat-card" style="background:#e67e22;">
                         <div class="stat-title">Customer Hold (Principal)</div>
-                        <div class="stat-value">₱{{ customer_hold }}</div>
+                        <div class="stat-value">{{ customer_hold|peso }}</div>
                     </div>
                 </div>
 
@@ -127,7 +127,7 @@
         <div class="loan-card card">
 
             <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center flex-wrap">
-                <span>₱{{ e_loan.loan_amount }}</span>
+                <span>{{ e_loan.loan_amount|peso }}</span>
 
                 {% if e_loan.remaining_principal == 0 %}
                     <span class="badge bg-success">Paid</span>
@@ -146,7 +146,7 @@
                     <div class="row g-2">
                         <div class="col-6 schedule-box bg-light">Start: {{ e_loan.start_date }}</div>
                         <div class="col-6 schedule-box bg-light">Day: {{ e_loan.schedule_day }}</div>
-                        <div class="col-6 schedule-box bg-light">Remaining: ₱{{ e_loan.remaining_principal }}</div>
+                        <div class="col-6 schedule-box bg-light">Remaining: ₱{{ e_loan.remaining_principal|peso }}</div>
                         <div class="col-6 schedule-box bg-warning text-dark">Weekly: ₱{{ e_loan.current_weekly_interest }}</div>
                     </div>
 
@@ -166,7 +166,7 @@
 
                             {% if sched.is_paid %}
                                 <div class="schedule-box bg-success text-white">
-                                    {{ sched.date }} - ₱{{ sched.amount }}
+                                    {{ sched.date }} - {{ sched.amount|peso }}
 
                                     {% if sched.paid_at %}
                                         <br><strong class="text-warning">Paid on:</strong>
@@ -176,7 +176,7 @@
 
                             {% elif sched.paid_amount > 0 %}
                                 <div class="schedule-box bg-info text-white d-flex justify-content-between">
-                                    {{ sched.date }} - ₱{{ sched.paid_amount }}/{{ sched.amount }}
+                                    {{ sched.date }} - {{ sched.paid_amount|peso }}/{{ sched.amount|peso }}
                                     <a href="{% url 'mark_emergency_paid' sched.pk %}" class="btn btn-sm btn-light">
                                         Pay
                                     </a>
@@ -184,7 +184,7 @@
 
                             {% else %}
                                 <div class="schedule-box bg-warning text-dark d-flex justify-content-between">
-                                    {{ sched.date }} - ₱{{ sched.amount }}
+                                    {{ sched.date }} - ₱{{ sched.amount|peso }}
                                     <a href="{% url 'mark_emergency_paid' sched.pk %}" class="btn btn-sm btn-light">
                                         Pay
                                     </a>
@@ -211,7 +211,7 @@
         <div class="loan-card card">
 
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap">
-                <span>₱{{ loan.loan_amount }}</span>
+                <span>{{ loan.loan_amount|peso }}</span>
 
                 {% if loan.remaining_balance == 0 %}
                     <span class="badge bg-success">Paid</span>
@@ -228,8 +228,8 @@
                 <div class="card-body">
 
                     <div class="row g-2 mb-2">
-                        <div class="col-6"><strong>Balance:</strong> ₱{{ loan.balance }}</div>
-                        <div class="col-6"><strong>Remaining:</strong> ₱{{ loan.remaining_balance }}</div>
+                        <div class="col-6"><strong>Balance:</strong> {{ loan.balance|peso }}</div>
+                        <div class="col-6"><strong>Remaining:</strong> {{ loan.remaining_balance|peso }}</div>
                         <div class="col-6"><strong>Start:</strong> {{ loan.start_date }}</div>
                         <div class="col-6"><strong>Due:</strong> {{ loan.due_date }}</div>
                         <div class="col-6"><strong>Loan type:</strong> {{ loan.payment_frequency }}</div>
@@ -246,7 +246,7 @@
 
                             {% if sched.is_paid %}
                                 <div class="schedule-box bg-success text-white">
-                                    {{ sched.date }} - ₱{{ sched.amount }}
+                                    {{ sched.date }} - ₱{{ sched.amount|peso }}
                                     <br>
                                     {% if sched.paid_at %}
                                         <strong class="text-warning">Paid on</strong>
@@ -256,7 +256,7 @@
 
                             {% elif sched.paid_amount > 0 %}
                                 <div class="schedule-box bg-info text-white d-flex justify-content-between">
-                                    {{ sched.date }} - ₱{{ sched.paid_amount }}/{{ sched.amount }}
+                                    {{ sched.date }} - {{ sched.paid_amount|peso }}/{{ sched.amount|peso }}
                                     <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">
                                         Pay
                                     </a>
@@ -264,7 +264,7 @@
 
                             {% else %}
                                 <div class="schedule-box bg-warning text-dark d-flex justify-content-between">
-                                    {{ sched.date }} - ₱{{ sched.amount }}
+                                    {{ sched.date }} - ₱{{ sched.amount|peso }}
                                     <a href="{% url 'mark_payment_paid' sched.pk %}" class="btn btn-sm btn-light">
                                         Pay
                                     </a>

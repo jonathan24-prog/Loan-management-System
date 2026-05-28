@@ -1,6 +1,6 @@
 
 {% extends 'loans/base.html' %}
-
+{% load format_currency %}
 {% block content %}
 
 <div class="container mt-4">
@@ -199,10 +199,11 @@
   
 
 <hr class="my-4">
+<div class="table-container">
 
 <h4 class="fw-bold mb-3">Other Loans</h4>
 
-<div class="table-responsive">
+<div class="table-responsive table-scroll" style="max-height: 400px; overflow-y: auto;" >
     <table class="table modern-table align-middle">
 
         <thead style="background-color: #cccccc;">
@@ -223,8 +224,8 @@
 
                 <td class="fw-semibold">{{ loan.full_name }}</td>
                 <td>{{ loan.contact_number }}</td>
-                <td>{{ loan.loan_amount }}</td>
-                <td>{{ loan.remaining_balance }}</td>
+                <td>{{ loan.loan_amount|peso }}</td>
+                <td>{{ loan.remaining_balance|peso }}</td>
 
                 <!-- STATUS -->
                 <td>
@@ -271,7 +272,7 @@
 
     </table>
 </div>
-
+</div>
 {% if not other_loans %}
 <div class="empty-state mt-3">
     <h5>No other loans found</h5>
@@ -622,4 +623,4 @@ function clearSearch() {
 </style>
 
 {% endblock %}
-```
+

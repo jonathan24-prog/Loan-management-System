@@ -1,5 +1,5 @@
 {% extends 'loans/base.html' %}
-
+{% load format_currency %}
 {% block content %}
 
 <div class="container mt-4">
@@ -11,8 +11,8 @@
         <!-- Loan Info -->
         <div class="mb-3">
             <p><strong>Customer:</strong> {{ loan.customer.full_name }}</p>
-            <p><strong>Loan Amount:</strong> ₱{{ loan.loan_amount }}</p>
-            <p><strong>Remaining Balance:</strong> ₱{{ loan.remaining_balance }}</p>
+            <p><strong>Loan Amount:</strong> {{ loan.loan_amount|peso }}</p>
+            <p><strong>Remaining Balance:</strong> {{ loan.remaining_balance|peso }}</p>
         </div>
 
         <!-- Payment Form -->

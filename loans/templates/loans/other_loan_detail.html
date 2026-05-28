@@ -1,5 +1,5 @@
 {% extends 'loans/base.html' %}
-
+{% load format_currency %}
 {% block content %}
 
 <div class="container mt-4">
@@ -9,8 +9,8 @@
 </a>
     <h3>{{ loan.full_name }} - Loan History</h3>
 
-    <p><strong>Remaining Balance:</strong> {{ loan.remaining_balance }}</p>
-    <p><strong>Total Paid:</strong> {{ total_paid }}</p>
+    <p><strong>Remaining Balance:</strong> {{ loan.remaining_balance|peso }}</p>
+    <p><strong>Total Paid:</strong> {{ total_paid|peso }}</p>
 
     <hr>
 
@@ -30,7 +30,7 @@
                 {% for p in payments %}
                 <tr>
                     <td>{{ p.date }}</td>
-                    <td>{{ p.amount }}</td>
+                    <td>{{ p.amount|peso }}</td>
                 </tr>
                 {% empty %}
                 <tr>

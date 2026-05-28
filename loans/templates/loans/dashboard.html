@@ -1,5 +1,5 @@
 {% extends 'loans/base.html' %}
-
+{% load format_currency %}
 {% block content %}
 
 <style>
@@ -34,17 +34,38 @@
 <div class="container-fluid">
 
     <!-- PAGE TITLE + FILTER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 ">
         <h4 class="fw-bold mb-0">Dashboard</h4>
     </div>
 
     <!-- MOBILE STYLE FILTER TABS -->
     <div class="d-flex gap-2 overflow-auto pb-2 mb-3" style="white-space: nowrap;">
-        <a href="?filter=day" class="btn btn-sm btn-primary rounded-pill px-3">Today</a>
-        <a href="?filter=week" class="btn btn-sm btn-outline-primary rounded-pill px-3">Week</a>
-        <a href="?filter=month" class="btn btn-sm btn-outline-primary rounded-pill px-3">Month</a>
-        <a href="?filter=year" class="btn btn-sm btn-outline-primary rounded-pill px-3">Year</a>
-    </div>
+
+    <a href="?filter=day"
+       class="btn btn-sm rounded-pill px-3
+       {% if request.GET.filter == 'day' or not request.GET.filter %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Today
+    </a>
+
+    <a href="?filter=week"
+       class="btn btn-sm rounded-pill px-3
+       {% if request.GET.filter == 'week' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Week
+    </a>
+
+    <a href="?filter=month"
+       class="btn btn-sm rounded-pill px-3
+       {% if request.GET.filter == 'month' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Month
+    </a>
+
+    <a href="?filter=year"
+       class="btn btn-sm rounded-pill px-3
+       {% if request.GET.filter == 'year' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Year
+    </a>
+
+</div>
 
     <!-- MAIN STATS -->
     <div class="row g-3 mb-3">
@@ -69,7 +90,7 @@
             <div class="card app-card p-3 text-white"
                  style="background: linear-gradient(135deg,#f1c40f,#f7dc6f);">
                 <div class="app-title">Income (Filtered)</div>
-                <div class="app-value">₱ {{ total_collection }}</div>
+                <div class="app-value"> {{ total_collection|peso }}</div>
             </div>
         </div>
 
@@ -91,21 +112,21 @@
         <div class="col-12 col-md-4">
             <div class="card app-card p-3 text-white" style="background:#3498db;">
                 <div class="app-title">Total Released</div>
-                <div class="app-value">₱ {{ total_released }}</div>
+                <div class="app-value"> {{ total_released|peso }}</div>
             </div>
         </div>
 
         <div class="col-12 col-md-4">
             <div class="card app-card p-3 text-white" style="background:#2ecc71;">
                 <div class="app-title">Total Collection</div>
-                <div class="app-value">₱ {{ total_collection }}</div>
+                <div class="app-value"> {{ total_collection|peso }}</div>
             </div>
         </div>
 
         <div class="col-12 col-md-4">
             <div class="card app-card p-3 text-dark" style="background:#f1c40f;">
                 <div class="app-title">Total Interest Earned</div>
-                <div class="app-value">₱ {{ total_interest_collected }}</div>
+                <div class="app-value"> {{ total_interest_collected|peso }}</div>
             </div>
         </div>
 

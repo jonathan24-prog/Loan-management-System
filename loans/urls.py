@@ -18,6 +18,11 @@ path(
     views.update_customer_contact,
     name='update_customer_contact'
 ),
+path(
+    'bulk-mark-paid/',
+    views.bulk_mark_paid,
+    name='bulk_mark_paid'
+),
 
 path('customer/<int:pk>/add-loan/', views.add_loan, name='add_loan'),
 path('customer/<int:pk>/add-emergency-loan/', views.add_emergency_loan, name='add_emergency_loan'),

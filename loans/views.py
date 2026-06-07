@@ -919,5 +919,28 @@ def update_customer_contact(request, pk):
     return redirect('customer_detail', pk=pk)
 
 
+from django.db import models
     
+from django.http import JsonResponse
+from django.utils import timezone
 
+def bulk_mark_paid(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False}, status=400)
+
+    ids = request.POST.get("schedule_ids", "").split(",")
+    ids = [i for i in ids if i]
+
+    updated = PaymentSchedule.objects.filter(
+        id__in=ids,
+        is_paid=False
+    ).update(
+        is_paid=True,
+        paid_amount=models.F("amount"),
+        paid_at=timezone.now()
+    )
+
+    return JsonResponse({
+        "success": True,
+        "updated": updated
+    })

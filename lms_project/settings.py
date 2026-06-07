@@ -11,6 +11,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-fallback-key")
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 ALLOWED_HOSTS = [
     "174.138.40.4",
+    "localhost",
+    "127.0.0.1",
 ]
 
 CSRF_TRUSTED_ORIGINS = [

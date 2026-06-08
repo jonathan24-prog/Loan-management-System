@@ -180,6 +180,9 @@ class PaymentSchedule(models.Model):
     def __str__(self):
         return f"{self.loan.customer.full_name} - {self.date}"
 
+    class Meta:
+        ordering = ['date', 'id']
+
 
 # ================= Emergency Loan (unchanged) =================
 class EmergencyLoan(models.Model):

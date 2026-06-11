@@ -932,21 +932,70 @@ from django.db import models
 from django.http import JsonResponse
 from django.utils import timezone
 
+from decimal import Decimal
+from collections import defaultdict
+from django.db import transaction
+from django.db.models import F
+from django.http import JsonResponse
+from django.utils import timezone
+
+@transaction.atomic
 def bulk_mark_paid(request):
     if request.method != "POST":
         return JsonResponse({"success": False}, status=400)
 
     ids = request.POST.get("schedule_ids", "").split(",")
-    ids = [i for i in ids if i]
+    ids = [i.strip() for i in ids if i.strip()]
 
-    updated = PaymentSchedule.objects.filter(
-        id__in=ids,
-        is_paid=False
-    ).update(
-        is_paid=True,
-        paid_amount=models.F("amount"),
-        paid_at=timezone.now()
+    schedules = (
+        PaymentSchedule.objects
+        .select_related("loan")
+        .filter(id__in=ids, is_paid=False)
     )
+
+    if not schedules.exists():
+        return JsonResponse({
+            "success": True,
+            "updated": 0
+        })
+
+    # Store total deduction per loan
+    loan_deductions = defaultdict(Decimal)
+
+    updated = 0
+    now = timezone.now()
+
+    for sched in schedules:
+        # accumulate deduction
+        loan_deductions[sched.loan_id] += sched.amount
+
+        # mark schedule paid
+        sched.is_paid = True
+        sched.paid_amount = sched.amount
+        sched.paid_at = now
+
+        sched.save(
+            update_fields=[
+                "is_paid",
+                "paid_amount",
+                "paid_at"
+            ]
+        )
+
+        updated += 1
+
+    # update affected loans
+    loans = Loan.objects.filter(id__in=loan_deductions.keys())
+
+    for loan in loans:
+        deduction = loan_deductions[loan.id]
+
+        loan.remaining_balance -= deduction
+
+        if loan.remaining_balance < 0:
+            loan.remaining_balance = Decimal("0.00")
+
+        loan.save(update_fields=["remaining_balance"])
 
     return JsonResponse({
         "success": True,

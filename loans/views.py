@@ -934,10 +934,13 @@ from django.utils import timezone
 
 from decimal import Decimal
 from collections import defaultdict
+
 from django.db import transaction
-from django.db.models import F
 from django.http import JsonResponse
 from django.utils import timezone
+
+from .models import Loan, PaymentSchedule
+
 
 @transaction.atomic
 def bulk_mark_paid(request):
@@ -950,7 +953,10 @@ def bulk_mark_paid(request):
     schedules = (
         PaymentSchedule.objects
         .select_related("loan")
-        .filter(id__in=ids, is_paid=False)
+        .filter(
+            id__in=ids,
+            is_paid=False
+        )
     )
 
     if not schedules.exists():
@@ -959,32 +965,37 @@ def bulk_mark_paid(request):
             "updated": 0
         })
 
-    # Store total deduction per loan
     loan_deductions = defaultdict(Decimal)
-
     updated = 0
     now = timezone.now()
 
     for sched in schedules:
-        # accumulate deduction
-        loan_deductions[sched.loan_id] += sched.amount
 
-        # mark schedule paid
-        sched.is_paid = True
+        # Amount still unpaid on this schedule
+        remaining = sched.amount - sched.paid_amount
+
+        if remaining <= 0:
+            continue
+
+        # Deduct only the remaining unpaid amount
+        loan_deductions[sched.loan_id] += remaining
+
+        # Mark schedule fully paid
         sched.paid_amount = sched.amount
+        sched.is_paid = True
         sched.paid_at = now
 
         sched.save(
             update_fields=[
-                "is_paid",
                 "paid_amount",
+                "is_paid",
                 "paid_at"
             ]
         )
 
         updated += 1
 
-    # update affected loans
+    # Update loan balances
     loans = Loan.objects.filter(id__in=loan_deductions.keys())
 
     for loan in loans:

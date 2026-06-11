@@ -168,13 +168,13 @@
     <!-- ================= NEW FEATURE (ONLY ADDITION) ================= -->
     <div class="row mt-2 g-2">
       <!--
-            <div class="col-6">
-                <div class="stat-card" style="background:#8e44ad;">
-                    <div class="stat-title">Principal Released</div>
-                    <div class="stat-value">₱{{ total_principal_released }}</div>
-                </div>
-            </div>
-            -->
+              <div class="col-6">
+                  <div class="stat-card" style="background:#8e44ad;">
+                      <div class="stat-title">Principal Released</div>
+                      <div class="stat-value">₱{{ total_principal_released }}</div>
+                  </div>
+              </div>
+              -->
 
       <div class="col-6">
         <div class="stat-card" style="background: #e67e22">
@@ -389,10 +389,18 @@
             {% elif sched.paid_amount > 0 %}
 
             <div
-              class="schedule-box bg-info text-white d-flex justify-content-between"
+              class="schedule-box bg-info text-white d-flex justify-content-between align-items-center"
             >
-              {{ sched.date }} - {{ sched.paid_amount|peso }}/{{
-              sched.amount|peso }}
+              <div>
+                <input
+                  type="checkbox"
+                  class="schedule-checkbox"
+                  value="{{ sched.pk }}"
+                />
+
+                {{ sched.date }} - {{ sched.paid_amount|peso }}/{{
+                sched.amount|peso }}
+              </div>
 
               <a
                 href="{% url 'mark_payment_paid' sched.pk %}"
@@ -544,6 +552,7 @@
           });
       });
   });
+
   document
     .getElementById("bulkPayForm")
     .addEventListener("submit", function (e) {

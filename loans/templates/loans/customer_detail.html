@@ -354,14 +354,13 @@
         <div class="d-flex justify-content-between align-items-center mb-2">
           <div class="d-flex align-items-center gap-3 mb-2">
             <label class="mb-0">
-              <input type="checkbox" id="selectAllSchedules" />
+              <input type="checkbox" class="select-all-schedules" />
               Select All
             </label>
 
             <button
               type="button"
-              id="bulkPayBtn"
-              class="btn btn-success btn-sm"
+              class="btn btn-success btn-sm bulk-pay-btn"
               disabled
             >
               Mark Selected as Paid
@@ -492,48 +491,62 @@
 <script>
   function toggleEditContact() {
     document.getElementById("contactDisplay").classList.toggle("d-none");
-
     document.getElementById("contactEditForm").classList.toggle("d-none");
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    const selectAll = document.getElementById("selectAllSchedules");
-    const bulkBtn = document.getElementById("bulkPayBtn");
+    // Handle every loan card independently
+    document.querySelectorAll(".loan-card").forEach(function (card) {
+      const selectAll = card.querySelector(".select-all-schedules");
+      const bulkBtn = card.querySelector(".bulk-pay-btn");
 
-    function updateButtonState() {
-      const checked = document.querySelectorAll(".schedule-checkbox:checked");
+      if (!selectAll || !bulkBtn) return;
 
-      bulkBtn.disabled = checked.length === 0;
-    }
+      function updateButtonState() {
+        const checked = card.querySelectorAll(".schedule-checkbox:checked");
 
-    selectAll?.addEventListener("change", function () {
-      document
-        .querySelectorAll(".schedule-checkbox")
-        .forEach((cb) => (cb.checked = this.checked));
-
-      updateButtonState();
-    });
-
-    document.addEventListener("change", function (e) {
-      if (e.target.classList.contains("schedule-checkbox")) {
-        updateButtonState();
+        bulkBtn.disabled = checked.length === 0;
       }
-    });
 
-    bulkBtn.addEventListener("click", function () {
-      const modal = new bootstrap.Modal(
-        document.getElementById("confirmBulkModal"),
-      );
+      // Select all only inside this loan
+      selectAll.addEventListener("change", function () {
+        card.querySelectorAll(".schedule-checkbox").forEach((cb) => {
+          cb.checked = this.checked;
+        });
 
-      modal.show();
-    });
+        updateButtonState();
+      });
 
-    document
-      .getElementById("confirmBulkPay")
-      .addEventListener("click", function () {
+      // Individual checkbox change
+      card.querySelectorAll(".schedule-checkbox").forEach((cb) => {
+        cb.addEventListener("change", function () {
+          const allBoxes = card.querySelectorAll(".schedule-checkbox");
+
+          const checkedBoxes = card.querySelectorAll(
+            ".schedule-checkbox:checked",
+          );
+
+          selectAll.checked =
+            allBoxes.length > 0 && allBoxes.length === checkedBoxes.length;
+
+          updateButtonState();
+        });
+      });
+
+      // Bulk pay button
+      bulkBtn.addEventListener("click", function () {
         const ids = [
-          ...document.querySelectorAll(".schedule-checkbox:checked"),
+          ...card.querySelectorAll(".schedule-checkbox:checked"),
         ].map((cb) => cb.value);
+
+        if (ids.length === 0) {
+          alert("Please select schedules first.");
+          return;
+        }
+
+        if (!confirm("Mark selected schedules as paid?")) {
+          return;
+        }
 
         fetch("{% url 'bulk_mark_paid' %}", {
           method: "POST",
@@ -548,9 +561,12 @@
           .then((data) => {
             if (data.success) {
               location.reload();
+            } else {
+              alert("Something went wrong.");
             }
           });
       });
+    });
   });
 
   document

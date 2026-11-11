@@ -813,38 +813,40 @@ def mark_payment_paid(request, pk):
                 messages.error(request, "Amount must be greater than zero.")
                 return redirect('customer_detail', pk=loan.customer.pk)
 
-        # initialize if empty
+        # Initialize if empty
         if payment.paid_amount is None:
             payment.paid_amount = Decimal('0.00')
 
-        # update payment
+        # Update payment amount
         payment.paid_amount += amount
 
-        # set timestamp when first payment happens
-        if not payment.paid_at:
-            payment.paid_at = timezone.now()
+        # Update timestamp every time a payment is recorded
+        payment.paid_at = timezone.now()
 
-        # mark fully paid
+        # Mark fully paid
         if payment.paid_amount >= payment.amount:
             payment.is_paid = True
             payment.paid_amount = payment.amount
 
         payment.save()
 
-        # update loan balance
+        # Update loan balance
         loan.remaining_balance -= amount
         if loan.remaining_balance < 0:
             loan.remaining_balance = 0
+
         loan.save(update_fields=['remaining_balance'])
 
-        messages.success(request, f"Payment of ₱{amount} recorded successfully.")
+        messages.success(
+            request,
+            f"Payment of ₱{amount} recorded successfully."
+        )
         return redirect('customer_detail', pk=loan.customer.pk)
-
-        
 
     return render(request, 'loans/mark_payment.html', {
         'payment': payment
     })
+
 
 def mark_emergency_paid(request, pk):
     payment = get_object_or_404(EmergencyPaymentSchedule, pk=pk)

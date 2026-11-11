@@ -391,8 +391,9 @@
             <div
               class="schedule-box bg-info text-white d-flex justify-content-between align-items-center"
             >
-              <strong>{{ forloop.counter }}.</strong>
               <div>
+                <strong>{{ forloop.counter }}.</strong>
+
                 <input
                   type="checkbox"
                   class="schedule-checkbox"
@@ -400,7 +401,13 @@
                 />
 
                 {{ sched.date }} - {{ sched.paid_amount|peso }}/{{
-                sched.amount|peso }}
+                sched.amount|peso }} {% if sched.paid_at %}
+                <br />
+                <small class="text-white">
+                  <strong>Partial payment made on:</strong>
+                  {{ sched.paid_at|date:"M d, Y - h:i A" }}
+                </small>
+                {% endif %}
               </div>
 
               <a

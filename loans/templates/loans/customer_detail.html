@@ -376,6 +376,7 @@
             {% if sched.is_paid %}
 
             <div class="schedule-box bg-success text-white">
+              <strong>{{ forloop.counter }}.</strong>
               {{ sched.date }} - {{ sched.amount|peso }}
 
               <br />
@@ -390,6 +391,7 @@
             <div
               class="schedule-box bg-info text-white d-flex justify-content-between align-items-center"
             >
+              <strong>{{ forloop.counter }}.</strong>
               <div>
                 <input
                   type="checkbox"
@@ -415,11 +417,13 @@
               class="schedule-box bg-warning text-dark d-flex justify-content-between align-items-center"
             >
               <div>
+                <strong>{{ forloop.counter }}.</strong>
                 <input
                   type="checkbox"
                   class="schedule-checkbox"
                   value="{{ sched.pk }}"
                 />
+
                 {{ sched.date }} - {{ sched.amount|peso }}
               </div>
 
